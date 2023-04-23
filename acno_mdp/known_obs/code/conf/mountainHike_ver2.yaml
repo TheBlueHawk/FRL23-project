@@ -1,9 +1,9 @@
 # Death Valley experiment
-
+device: auto
 environment:
-  name : "custom_mountain:hike-v1"
-  entry_point : "custom_mountain.envs:CustomHikeEnv"
-  max_episode_steps : 75 # uses 100 in real env (as specified below)
+  name: "custom_mountain:hike-v1"
+  entry_point: "custom_mountain.envs:CustomHikeEnv"
+  max_episode_steps: 75 # uses 100 in real env (as specified below)
   vec_norm: False
   frameskips_cases: []
   p_blank: 0
@@ -12,7 +12,7 @@ environment:
   config:
     transition_std: 0.025
     observation_std: 0.0
-    obs_cost : -0.5 # on the most recent runs, turn of obs cost completely -0.2 # -0.5, -0.2
+    obs_cost: -0.5 # on the most recent runs, turn of obs cost completely -0.2 # -0.5, -0.2
     # Set to None to switch off
     goal_reward:
 
@@ -30,8 +30,8 @@ environment:
     box_scale: 10
 
   model_adaptation:
-    cnn_channels : [64, 64]
-    observation_type : fc
+    cnn_channels: [64, 64]
+    observation_type: fc
     h_dim: 128
     action_encoding: 64
   rl_setting_adaptation:
@@ -41,17 +41,17 @@ environment:
     z_dim: 2
 
 algorithm:
-  env_type : "mountain"
-  use_particle_filter : True
-  alg_type : 2
-  dirname: './tmp/gym/'  # never called
+  env_type: "mountain"
+  use_particle_filter: True
+  alg_type: 2
+  dirname: "./tmp/gym/" # never called
   # BPTT for num_steps * multiplier_backprop_length
-  multiplier_backprop_length : 5 #n_g=25
+  multiplier_backprop_length: 5 #n_g=25
 
   model:
     # Overwritten and set by environment yaml
     cnn_channels: None
-    observation_type : None
+    observation_type: None
 
     # Set to 0 to switch off
     action_encoding: 128
@@ -68,9 +68,9 @@ algorithm:
     obs_loss_coef: 0.0
 
   particle_filter:
-    num_particles : 30
+    num_particles: 30
     particle_aggregation: rnn
-    z_dim : 2
+    z_dim: 2
 
     prior_loss_coef: 1.0
     obs_loss_coef: 1.0

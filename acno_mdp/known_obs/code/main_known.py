@@ -53,6 +53,11 @@ from sacred.utils import apply_backspaces_and_linefeeds
 from storage import RolloutStorage
 from torch.autograd import Variable
 
+from sacred import SETTINGS
+SETTINGS.CONFIG.READ_ONLY_CONFIG = False
+
+torch.autograd.set_detect_anomaly(True)
+
 # Create Sacred Experiment
 ex = Experiment("POMRL")
 ex.captured_out_filter = apply_backspaces_and_linefeeds
@@ -477,7 +482,7 @@ def main(_run, seed, opt, environment, rl_setting, log, algorithm, loss_function
 
     filename = log["filename"]
     if not os.path.exists(filename):
-        os.makedirs(filename + "raw/")
+        os.makedirs(filename + "raw/", exist_ok=True)
 
     id_tmp_dir, envs, actor_critic, rollouts, current_memory = setup()
 

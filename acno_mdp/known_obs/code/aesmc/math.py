@@ -1,6 +1,8 @@
 import numpy as np
-import scipy.misc
+from scipy.special import logsumexp as scipy_logsumexp
 import torch
+
+
 
 
 def logsumexp(values, dim=0, keepdim=False):
@@ -54,7 +56,7 @@ def lognormexp(values, dim=0):
     """
 
     if isinstance(values, np.ndarray):
-        log_denominator = scipy.misc.logsumexp(values, axis=dim, keepdims=True)
+        log_denominator = scipy_logsumexp(values, axis=dim, keepdims=True)
         # log_numerator = values
         return values - log_denominator
     else:
