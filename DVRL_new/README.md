@@ -14,7 +14,7 @@ Installation:
 
 1. Open a terminal under the same directory as this file.
     
-2. Create a virtual environment named FoRL (or something you like).
+2. Create a virtual environment named dvrl (or something you like).
 
     `virtualenv dvrl`
 
