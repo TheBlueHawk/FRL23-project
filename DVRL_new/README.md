@@ -8,7 +8,7 @@ Disclaimer: I change the baselines libuary of the original DVRL repo to stable-b
 
 ### Installing dependencies (for FoRL project modified version)
 You will need
-- Python v3.8.10 (I used [Anaconda](https://conda.io/docs/user-guide/install/index.html) but it should work with other distributions as well)
+- Python v3.8.10 
 
 Installation:
 
