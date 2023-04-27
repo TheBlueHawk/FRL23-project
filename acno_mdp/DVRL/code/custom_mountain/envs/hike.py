@@ -84,7 +84,7 @@ class CustomHikeEnv(gym.Env):
 
         self.outside_box_cost = outside_box_cost
 
-        self._seed()
+        self.seed()
         self.starting_position = np.array(starting_position)
         self.starting_std = starting_std
 
@@ -263,6 +263,6 @@ class CustomHikeEnv(gym.Env):
                 self.viewer = rendering.SimpleImageViewer()
             self.viewer.imshow(fig2im(fig))
 
-    def _seed(self, seed=None):
+    def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]

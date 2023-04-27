@@ -194,7 +194,8 @@ def setup(rl_setting, device, _run, _log, log, seed, cuda):
     obs = envs.reset()
     if not actor_critic.observation_type == "fc":
         obs = obs / 255.0
-    current_obs = torch.from_numpy(obs).float()
+    current_obs = torch.from_numpy(obs)
+    current_obs = current_obs.float()
     # init_states = Variable(torch.zeros(rl_setting['num_processes'], actor_critic.state_size))
     init_states = actor_critic.new_latent_state()
     init_rewards = torch.zeros([rl_setting["num_processes"], 1])
