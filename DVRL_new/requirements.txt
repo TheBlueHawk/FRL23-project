@@ -5,7 +5,6 @@ matplotlib==2.1.2
 opencv_python==4.5.4.60
 sacred==0.8.4
 docopt==0.6.2
-pybullet==1.7.4
 torch==1.13.1
 pandas==2.0.0
 scipy==1.10.1
