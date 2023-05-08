@@ -3,13 +3,14 @@ def main():
   import warnings
   import dreamerv3
   from dreamerv3 import embodied
+
   warnings.filterwarnings('ignore', '.*truncated to dtype int32.*')
 
   # See configs.yaml for all options.
   config = embodied.Config(dreamerv3.configs['defaults'])
   config = config.update(dreamerv3.configs['medium'])
   config = config.update({
-      'logdir': '~/logdir/run1',
+      'logdir': 'logdir/run1',
       'run.train_ratio': 64,
       'run.log_every': 30,  # Seconds
       'batch_size': 16,
@@ -34,7 +35,10 @@ def main():
 
   import crafter
   from embodied.envs import from_gym
-  env = crafter.Env()  # Replace this with your Gym env.
+  #env = crafter.Env()  # Replace this with your Gym env.
+  from active_measureGym_Wrapper import make_env
+  env = make_env("CartPole-v1", 0.1, 1, False)
+
   env = from_gym.FromGym(env, obs_key='image')  # Or obs_key='vector'.
   env = dreamerv3.wrap_env(env, config)
   env = embodied.BatchEnv([env], parallel=False)

@@ -8,7 +8,7 @@ On first login follow [euler-first-time-setup](#euler-first-time-setup). Otherwi
 ```bash
 ssh euler
 # Open project and load most recent changes
-cd ../../scratch/<user_name>/FRL23-project/FRL23-project/dreamerv3
+cd ../../scratch/<user_name>/FRL23-project/dreamerv3
 git pull
 # Request interactive session with GPU (for quick exprimenting, default time-out 1H)
 srun --gpus=1 --ntasks=4 --mem-per-cpu=4G --pty bash

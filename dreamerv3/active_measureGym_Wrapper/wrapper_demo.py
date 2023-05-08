@@ -5,7 +5,7 @@ import numpy as np
 
 obs_cost = 0.1
 obs_flag = 1
-vanilla = 0
+vanilla = False
 
 env = make_env("CartPole-v1", obs_cost, obs_flag, vanilla)
 
