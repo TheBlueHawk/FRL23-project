@@ -37,6 +37,10 @@ python example.py
 - `myjobs`	Job information in human readable format
 - `scancel`	Kill a job
 
+#### Graphical output
+- `xvfb-run -d <your_python_cmd>` Use a frame buffer for offscreen rendering
+- `ssh -Y euler` Tunnel the graphical output to your local machine. Need to have a X11 server installed.
+
 
 ### Euler first time setup
 #### SSH
