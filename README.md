@@ -81,6 +81,10 @@ conda create --name dreamjax python=3.10
 conda activate dreamjax
 # Install JAX
 pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+# (you may need to run the following if pip does not work on Euler properly:)
+# curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+# python3 get-pip.py --force-reinstall
+
 # Install TF
 pip install tensorflow
 # Install other requirements 
