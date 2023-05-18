@@ -3,7 +3,7 @@ import re
 import embodied
 import numpy as np
 
-
+# TEST
 def train(agent, env, replay, logger, args):
 
   logdir = embodied.Path(args.logdir)
