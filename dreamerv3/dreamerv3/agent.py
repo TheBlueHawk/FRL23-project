@@ -3,13 +3,13 @@ import jax
 import jax.numpy as jnp
 import ruamel.yaml as yaml
 tree_map = jax.tree_util.tree_map
-sg = lambda x: tree_map(jax.lax.stop_gradient, x)
+sg = lambda x: tree_map(jax.lax.stop_gradient, x)  # Lambda function to stop gradient flow
 
 import logging
 logger = logging.getLogger()
 class CheckTypesFilter(logging.Filter):
   def filter(self, record):
-    return 'check_types' not in record.getMessage()
+    return 'check_types' not in record.getMessage()  # Filter to avoid certain log messages
 logger.addFilter(CheckTypesFilter())
 
 from . import behaviors
@@ -19,7 +19,7 @@ from . import nets
 from . import ninjax as nj
 
 
-@jaxagent.Wrapper
+@jaxagent.Wrapper  # Use the Wrapper decorator from jaxagent
 class Agent(nj.Module):
 
   configs = yaml.YAML(typ='safe').load(
@@ -337,7 +337,7 @@ class VFunction(nj.Module):
     return metrics
 
   def loss(self, traj, target):
-    metrics = {}
+    metrics = {} 
     traj = {k: v[:-1] for k, v in traj.items()}
     dist = self.net(traj)
     loss = -dist.log_prob(sg(target))
