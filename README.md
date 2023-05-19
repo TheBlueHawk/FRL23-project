@@ -90,3 +90,9 @@ pip install tensorflow
 # Install other requirements 
 pip install -r requirements.txt
 ```
+
+### For dreamerv3-torch
+
+Everything is the same as above, except for the following:
+- `conda create --name dreamerv3-torch python=3.9`
+- `module load gcc/8.2.0 python_gpu/3.9.9 r/4.0.2 git-lfs/2.3.0 eth_proxy npm/6.14.9 ffmpeg/5.0 cudnn/8.8.1.3 cuda/11.7.0`
