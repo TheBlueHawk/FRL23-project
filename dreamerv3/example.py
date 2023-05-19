@@ -47,8 +47,8 @@ def main():
         **config.run, logdir=config.logdir,
         batch_steps=config.batch_size * config.batch_length)  # Arguments for training
     #embodied.run.train(agent, env, replay, logger, args)  # Starting the training process
-    #embodied.run.eval_only(agent, env, logger, args)  # Evaluation mode
-    embodied.run.train_eval(agent, env, replay, logger, args)  # Training and evaluation mode
+    embodied.run.eval_only(agent, env, logger, args)  # Evaluation mode
+    #embodied.run.train_eval(agent, env, env, replay, replay, logger, args)  # Training and evaluation mode
 
 if __name__ == '__main__':
     main()
