@@ -69,7 +69,7 @@ class RSSM(nj.Module):
     action = swap(action)
     prior = jaxutils.scan(self.img_step, action, state, self._unroll)
     prior = {k: swap(v) for k, v in prior.items()}
-    return prior
+    return prior # (h, ^z)
 
   def get_dist(self, state, argmax=False):
     if self._classes:
@@ -98,9 +98,9 @@ class RSSM(nj.Module):
     dist = self.get_dist(stats)
     stoch = dist.sample(seed=nj.rng())
     post = {'stoch': stoch, 'deter': prior['deter'], **stats}
-    return cast(post), cast(prior)
+    return cast(post), cast(prior) #post = (h,z), prior = (h, ^z).
 
-  def img_step(self, prev_state, prev_action):
+  def img_step(self, prev_state, prev_action): # IMG = Imaginary. Ouputs (h, ^z).
     prev_stoch = prev_state['stoch']
     prev_action = cast(prev_action)
     if self._action_clip > 0.0:

@@ -32,7 +32,7 @@ class Agent(nj.Module):
     self.step = step
     self.wm = WorldModel(obs_space, act_space, config, name='wm')
     self.task_behavior = getattr(behaviors, config.task_behavior)(
-        self.wm, self.act_space, self.config, name='task_behavior')
+        self.wm, self.act_space, self.config, name='task_behavior') # task behaviour = Greedy, Explore or Random
     if config.expl_behavior == 'None':
       self.expl_behavior = self.task_behavior
     else:
@@ -56,7 +56,7 @@ class Agent(nj.Module):
     latent, _ = self.wm.rssm.obs_step(
         prev_latent, prev_action, embed, obs['is_first'])
     self.expl_behavior.policy(latent, expl_state)
-    task_outs, task_state = self.task_behavior.policy(latent, task_state)
+    task_outs, task_state = self.task_behavior.policy(latent, task_state) # actor-critic
     expl_outs, expl_state = self.expl_behavior.policy(latent, expl_state)
     if mode == 'eval':
       outs = task_outs
