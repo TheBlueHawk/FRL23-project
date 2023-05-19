@@ -25,6 +25,7 @@ class FromGym(embodied.Env):
     return self._info
 
   @functools.cached_property
+  # extract the observation space from the environment and convert them to the embodied.Space format
   def obs_space(self):
     if self._obs_dict:
       spaces = self._flatten(self._env.observation_space.spaces)
@@ -40,6 +41,7 @@ class FromGym(embodied.Env):
     }
 
   @functools.cached_property
+  # extract the action space from the environment and convert them to the embodied.Space format
   def act_space(self):
     if self._act_dict:
       spaces = self._flatten(self._env.action_space.spaces)
@@ -49,6 +51,7 @@ class FromGym(embodied.Env):
     spaces['reset'] = embodied.Space(bool)
     return spaces
 
+  # takes in an action and returns the resulting observation, reward, and other information about the environment.
   def step(self, action):
     if action['reset'] or self._done:
       self._done = False
@@ -77,17 +80,20 @@ class FromGym(embodied.Env):
         is_terminal=is_terminal)
     return obs
 
+  # renders the environment and returns the resulting image.
   def render(self):
     image = self._env.render('rgb_array')
     assert image is not None
     return image
 
+  # Terminate the environment
   def close(self):
     try:
       self._env.close()
     except Exception:
       pass
 
+  # helper methods used to convert the observation and action spaces to the embodied.Space format.
   def _flatten(self, nest, prefix=None):
     result = {}
     for key, value in nest.items():

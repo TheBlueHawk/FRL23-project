@@ -3,13 +3,13 @@ import jax
 import jax.numpy as jnp
 import ruamel.yaml as yaml
 tree_map = jax.tree_util.tree_map
-sg = lambda x: tree_map(jax.lax.stop_gradient, x)
+sg = lambda x: tree_map(jax.lax.stop_gradient, x)  # Lambda function to stop gradient flow
 
 import logging
 logger = logging.getLogger()
 class CheckTypesFilter(logging.Filter):
   def filter(self, record):
-    return 'check_types' not in record.getMessage()
+    return 'check_types' not in record.getMessage()  # Filter to avoid certain log messages
 logger.addFilter(CheckTypesFilter())
 
 from . import behaviors
@@ -19,7 +19,7 @@ from . import nets
 from . import ninjax as nj
 
 
-@jaxagent.Wrapper
+@jaxagent.Wrapper  # Use the Wrapper decorator from jaxagent
 class Agent(nj.Module):
 
   configs = yaml.YAML(typ='safe').load(
@@ -32,7 +32,7 @@ class Agent(nj.Module):
     self.step = step
     self.wm = WorldModel(obs_space, act_space, config, name='wm')
     self.task_behavior = getattr(behaviors, config.task_behavior)(
-        self.wm, self.act_space, self.config, name='task_behavior')
+        self.wm, self.act_space, self.config, name='task_behavior') # task behaviour = Greedy, Explore or Random
     if config.expl_behavior == 'None':
       self.expl_behavior = self.task_behavior
     else:
@@ -56,7 +56,7 @@ class Agent(nj.Module):
     latent, _ = self.wm.rssm.obs_step(
         prev_latent, prev_action, embed, obs['is_first'])
     self.expl_behavior.policy(latent, expl_state)
-    task_outs, task_state = self.task_behavior.policy(latent, task_state)
+    task_outs, task_state = self.task_behavior.policy(latent, task_state) # actor-critic
     expl_outs, expl_state = self.expl_behavior.policy(latent, expl_state)
     if mode == 'eval':
       outs = task_outs
@@ -337,7 +337,7 @@ class VFunction(nj.Module):
     return metrics
 
   def loss(self, traj, target):
-    metrics = {}
+    metrics = {} 
     traj = {k: v[:-1] for k, v in traj.items()}
     dist = self.net(traj)
     loss = -dist.log_prob(sg(target))
