@@ -3,7 +3,6 @@ import re
 import embodied
 import numpy as np
 
-# TEST
 def train(agent, env, replay, logger, args):
 
   logdir = embodied.Path(args.logdir)
@@ -59,7 +58,7 @@ def train(agent, env, replay, logger, args):
   driver.on_step(lambda tran, _: step.increment())
   driver.on_step(replay.add)
 
-  print('Prefill train dataset.')
+  print('Prefill train dataset.') # Step 1 : Create dataset random agent
   random_agent = embodied.RandomAgent(env.act_space)
   while len(replay) < max(args.batch_steps, args.train_fill):
     driver(random_agent.policy, steps=100)
