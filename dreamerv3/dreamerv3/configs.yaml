@@ -4,7 +4,7 @@ defaults:
   task: dummy_disc
   logdir: /dev/null
   replay: uniform
-  replay_size: 1e3
+  replay_size: 1e4
   replay_online: False
   eval_dir: ""
   filter: ".*"
@@ -23,11 +23,11 @@ defaults:
 
   run:
     script: train
-    steps: 1e5
+    steps: 1e6
     expl_until: 0
     log_every: 300
     save_every: 900
-    eval_every: 1e4
+    eval_every: 1e5
     eval_initial: True
     eval_eps: 1
     eval_samples: 1
