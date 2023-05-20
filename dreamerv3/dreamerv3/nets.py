@@ -83,18 +83,24 @@ class RSSM(nj.Module):
   def obs_step(self, prev_state, prev_action, embed, is_first):
     is_first = cast(is_first)
     prev_action = cast(prev_action)
+
     if self._action_clip > 0.0:
-      prev_action *= sg(self._action_clip / jnp.maximum(
-          self._action_clip, jnp.abs(prev_action)))
+        prev_action *= sg(self._action_clip / jnp.maximum(
+            self._action_clip, jnp.abs(prev_action)))
+
+    # Mask returns 0 when "is_first" is True and 1 when "is_first" is False"
     prev_state, prev_action = jax.tree_util.tree_map(
         lambda x: self._mask(x, 1.0 - is_first), (prev_state, prev_action))
+
+    # ???
     prev_state = jax.tree_util.tree_map(
         lambda x, y: x + self._mask(y, is_first),
         prev_state, self.initial(len(is_first)))
+
     prior = self.img_step(prev_state, prev_action)
     x = jnp.concatenate([prior['deter'], embed], -1)
     x = self.get('obs_out', Linear, **self._kw)(x)
-    stats = self._stats('obs_stats', x)
+    stats = self._stats('obs_stats', x) # stats = logit (classes) or mean/std (continuous)
     dist = self.get_dist(stats)
     stoch = dist.sample(seed=nj.rng())
     post = {'stoch': stoch, 'deter': prior['deter'], **stats}
@@ -103,20 +109,29 @@ class RSSM(nj.Module):
   def img_step(self, prev_state, prev_action): # IMG = Imaginary. Ouputs (h, ^z).
     prev_stoch = prev_state['stoch']
     prev_action = cast(prev_action)
+
+    # Scale the prev_action values if _action_clip is greater than zero
     if self._action_clip > 0.0:
-      prev_action *= sg(self._action_clip / jnp.maximum(
-          self._action_clip, jnp.abs(prev_action)))
+        prev_action *= sg(self._action_clip / jnp.maximum(
+            self._action_clip, jnp.abs(prev_action)))
+
+    # Reshape prev_stoch if classes are present
     if self._classes:
-      shape = prev_stoch.shape[:-2] + (self._stoch * self._classes,)
-      prev_stoch = prev_stoch.reshape(shape)
-    if len(prev_action.shape) > len(prev_stoch.shape):  # 2D actions.
-      shape = prev_action.shape[:-2] + (np.prod(prev_action.shape[-2:]),)
-      prev_action = prev_action.reshape(shape)
+        shape = prev_stoch.shape[:-2] + (self._stoch * self._classes,)
+        prev_stoch = prev_stoch.reshape(shape)
+
+    # Reshape prev_action if it has more dimensions than prev_stoch
+    if len(prev_action.shape) > len(prev_stoch.shape):
+        shape = prev_action.shape[:-2] + (np.prod(prev_action.shape[-2:]),)
+        prev_action = prev_action.reshape(shape)
+
     x = jnp.concatenate([prev_stoch, prev_action], -1)
     x = self.get('img_in', Linear, **self._kw)(x)
+
+    # gru outputs deter, deter (1 of them will be unchanged, the other one will be updated)
     x, deter = self._gru(x, prev_state['deter'])
     x = self.get('img_out', Linear, **self._kw)(x)
-    stats = self._stats('img_stats', x)
+    stats = self._stats('img_stats', x) # stats = logit (classes) or mean/std (continuous)
     dist = self.get_dist(stats)
     stoch = dist.sample(seed=nj.rng())
     prior = {'stoch': stoch, 'deter': deter, **stats}
