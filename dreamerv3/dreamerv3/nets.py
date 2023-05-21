@@ -416,7 +416,7 @@ class ImageDecoderResnet(nj.Module):
     return x
 
 
-class MLP(nj.Module):
+class MLP(nj.Module): # ouput size = shape
 
   def __init__(
       self, shape, layers, units, inputs=['tensor'], dims=None,

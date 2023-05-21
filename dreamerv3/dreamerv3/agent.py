@@ -88,7 +88,7 @@ class Agent(nj.Module):
     task_outs, task_state = self.task_behavior.policy(latent, task_state) # actor-critic
     
     # Execute the exploration behavior's policy, given the current latent state, and update the exploration state.
-    expl_outs, expl_state = self.expl_behavior.policy(latent, expl_state)
+    expl_outs, expl_state = self.expl_behavior.policy(latent, expl_state) # for us: same as task_behavior
     
     # Depending on the mode, choose which policy to use and what action to take.
     if mode == 'eval':
@@ -100,7 +100,7 @@ class Agent(nj.Module):
       outs['log_entropy'] = outs['action'].entropy()
       outs['action'] = outs['action'].sample(seed=nj.rng())
     elif mode == 'train':
-      outs = task_outs
+      outs = task_outs # actor output = distribution on actions
       outs['log_entropy'] = outs['action'].entropy()
       outs['action'] = outs['action'].sample(seed=nj.rng())
     
