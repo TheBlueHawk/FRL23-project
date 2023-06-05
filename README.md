@@ -85,6 +85,9 @@ pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-re
 # curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 # python3 get-pip.py --force-reinstall
 
+# I needed the following:
+# pip install setuptools==57.1.0
+
 # Install TF
 pip install tensorflow
 # Install other requirements 
