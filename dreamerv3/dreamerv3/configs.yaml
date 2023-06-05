@@ -27,10 +27,10 @@ defaults:
     expl_until: 0
     log_every: 300
     save_every: 900
-    eval_every: 1e4
+    eval_every: 250 # set to 0 = never eval, set to negative = always eval, otherwise eval every x steps
     eval_initial: True
     eval_eps: 1
-    eval_samples: 1
+    eval_samples: 1 # not used in code
     train_ratio: 32.0
     train_fill: 0
     eval_fill: 0
