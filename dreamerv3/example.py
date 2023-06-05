@@ -20,7 +20,7 @@ def main():
         'decoder.mlp_keys': '.*',
         'encoder.cnn_keys': '$^',
         'decoder.cnn_keys': '$^',
-        # 'jax.platform': 'cpu',
+        'jax.platform': 'cpu',
     })
     config = embodied.Flags(config).parse()  # Parsing final configuration
 

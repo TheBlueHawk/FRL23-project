@@ -108,7 +108,7 @@ class Agent(nj.Module):
     state = ((latent, outs['action']), task_state, expl_state)
     
     # Return the policy outputs and the updated state.
-    return outs, state
+    return outs, state # outs is now [action sampled, entropy]
 
   def train(self, data, state):
     # This method is used to train the agent using the given data and state.

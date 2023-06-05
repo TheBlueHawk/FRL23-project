@@ -57,8 +57,6 @@ def train(agent, env, replay, logger, args):
     # Initialize a dictionary for statistics
     stats = {}
 
-    # Process additional episode statistics for logging
-    
     # Calculate statistics and add to logger
     for key in args.log_keys_video:
       if key in ep:
