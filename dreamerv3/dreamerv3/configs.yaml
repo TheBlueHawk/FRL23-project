@@ -27,7 +27,7 @@ defaults:
     expl_until: 0
     log_every: 300
     save_every: 900
-    eval_every: 250 # set to 0 = never eval, set to negative = always eval, otherwise eval every x steps
+    eval_every: -1 # set to 0 = never eval, set to negative = always eval, otherwise eval every x steps
     eval_initial: True
     eval_eps: 1
     eval_samples: 1 # not used in code
