@@ -37,38 +37,62 @@ class Driver:
   def on_episode(self, callback):
     self._on_episodes.append(callback)  # Add a callback function to the list of episode callbacks
 
-  def __call__(self, policy, steps=0, episodes=0):
+  def __call__(self, policy, steps=0, episodes=0, mode="train"):
     step, episode = 0, 0
     # Continue the interaction loop until reaching the desired number of steps or episodes
     while step < steps or episode < episodes:
-      step, episode = self._step(policy, step, episode)
+      step, episode = self._step(policy, step, episode, mode)
 
   # performs a single step in the interaction loop. It receives observations from the environment, 
   # determines actions using the policy, updates internal state, and stores transition data
-  def _step(self, policy, step, episode):
+  def _step(self, policy, step, episode, mode="train"):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
     
     # Action Processing: Filter actions and perform an action step in the environment
     # Prepare actions for the environment based on the current policy
-    acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
-    obs = self._env.step(acts)  # Interact with the environment using the prepared actions
-    obs = {k: convert(v) for k, v in obs.items()}  # Convert observation data to appropriate data types
-    assert all(len(x) == len(self._env) for x in obs.values()), obs
-    
-    # Policy Execution: Get actions from the policy function based on the observations and state
-    acts, self._state = policy(obs, self._state, **self._kwargs)  # Determine new actions based on the observed states
-    acts = {k: convert(v) for k, v in acts.items()}  # Convert the action data to appropriate data types
-    
-    # Handling 'is_last' Observations: Adjust actions for terminated environments
-    if obs['is_last'].any():
-        mask = 1 - obs['is_last']
-        acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}  # Mask actions if an episode is done
-    acts['reset'] = obs['is_last'].copy()  # Include a reset flag for the environment if an episode is done
-    self._acts = acts
-    
-    # Transition Processing: Merge observations and actions into a transition dictionary
-    trns = {**obs, **acts}  # Combine observation and action data
+
+    # IF TRAIN THEN NO CHANGE:
+    if mode == "train" or mode == "expl":
+      acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
+      obs = self._env.step(acts)  # Interact with the environment using the prepared actions
+      obs = {k: convert(v) for k, v in obs.items()}  # Convert observation data to appropriate data types
+      assert all(len(x) == len(self._env) for x in obs.values()), obs
+      
+      # Policy Execution: Get actions from the policy function based on the observations and state
+      acts, self._state = policy(obs, self._state, **self._kwargs)  # Determine new actions based on the observed states
+      acts = {k: convert(v) for k, v in acts.items()}  # Convert the action data to appropriate data types
+      
+      # Handling 'is_last' Observations: Adjust actions for terminated environments
+      if obs['is_last'].any():
+          mask = 1 - obs['is_last']
+          acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}  # Mask actions if an episode is done
+      acts['reset'] = obs['is_last'].copy()  # Include a reset flag for the environment if an episode is done
+      self._acts = acts
+      
+      # Transition Processing: Merge observations and actions into a transition dictionary
+      trns = {**obs, **acts}  # Combine observation and action data
+
+    # IF EVAL THEN SHOULD OBSERVE WORLD LESS:
+    if mode == "eval":
+      acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
+      obs = self._env.step(acts)  # Interact with the environment using the prepared actions
+      obs = {k: convert(v) for k, v in obs.items()}  # Convert observation data to appropriate data types
+      assert all(len(x) == len(self._env) for x in obs.values()), obs
+      
+      # Policy Execution: Get actions from the policy function based on the observations and state
+      acts, self._state = policy(obs, self._state, **self._kwargs)  # Determine new actions based on the observed states
+      acts = {k: convert(v) for k, v in acts.items()}  # Convert the action data to appropriate data types
+      
+      # Handling 'is_last' Observations: Adjust actions for terminated environments
+      if obs['is_last'].any():
+          mask = 1 - obs['is_last']
+          acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}  # Mask actions if an episode is done
+      acts['reset'] = obs['is_last'].copy()  # Include a reset flag for the environment if an episode is done
+      self._acts = acts
+      
+      # Transition Processing: Merge observations and actions into a transition dictionary
+      trns = {**obs, **acts}  # Combine observation and action data
     
     # Handling 'is_first' Observations: Clear episode dictionaries for new episodes
     if obs['is_first'].any():
