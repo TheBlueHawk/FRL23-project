@@ -111,12 +111,12 @@ def train_eval(
   print('Start training loop.')
   policy_train = lambda *args: agent.policy(
       *args, mode='explore' if should_expl(step) else 'train')
-  policy_eval = lambda *args: agent.policy(*args, mode='eval')
+  policy_eval = lambda *args: agent.policy(*args, mode='train') # mode = train so that we have access to action entropy
   while step < args.steps:
     if should_eval(step):
       print('Starting evaluation at step', int(step))
       driver_eval.reset()
-      driver_eval(policy_eval, episodes=max(len(eval_env), args.eval_eps), mode="eval")
+      driver_eval(policy_eval, episodes=max(len(eval_env), args.eval_eps), mode="eval", imagine = agent.agent.wm.imagine)
     driver_train(policy_train, steps=100, mode="train")
     if should_save(step):
       checkpoint.save()
