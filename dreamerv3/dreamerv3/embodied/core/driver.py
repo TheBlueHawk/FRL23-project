@@ -107,7 +107,7 @@ class Driver:
     assert all(len(x) == len(self._env) for x in self._acts.values())
     acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
 
-    if step % 5 == 0:
+    if step % 5 == 0: # Every 5 steps observe the world per usual
       obs = self._env.step(acts)
       obs = {k: convert(v) for k, v in obs.items()}
       assert all(len(x) == len(self._env) for x in obs.values()), obs
@@ -137,11 +137,11 @@ class Driver:
       policy_fct = lambda s: actor_fct(sg(s)).sample(seed=nj.rng())
 
       # print("state: ", self._state)
-      candidate = self._state[0][0]
+      candidate = self._state[0][0] # getting a state with the right format (i think), not sure if this is the one we'll use in the end though
       candidate = jax.device_put(candidate, jax.devices("cpu")[0])
       # print("candidate: ", candidate)
 
-      test = imagine_fct(policy_fct, candidate)
+      test = imagine_fct(policy_fct, candidate) # cannot even run this, the rest needs to be modified
       print(test)
 
       obs = self._env.step(acts)
