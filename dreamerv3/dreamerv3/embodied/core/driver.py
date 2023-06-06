@@ -38,15 +38,15 @@ class Driver:
   def on_episode(self, callback):
     self._on_episodes.append(callback)  # Add a callback function to the list of episode callbacks
 
-  def __call__(self, policy, steps=0, episodes=0, mode="train", imagine = None):
+  def __call__(self, policy, steps=0, episodes=0, mode="train", agent=None):
     step, episode = 0, 0
     # Continue the interaction loop until reaching the desired number of steps or episodes
     while step < steps or episode < episodes:
-      step, episode = self._step(policy, step, episode, mode, imagine)
+      step, episode = self._step(policy, step, episode, mode, agent)
 
   # performs a single step in the interaction loop. It receives observations from the environment, 
   # determines actions using the policy, updates internal state, and stores transition data
-  def _step(self, policy, step, episode, mode="train", imagine=None):
+  def _step(self, policy, step, episode, mode="train", agent=None):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
     
@@ -60,13 +60,8 @@ class Driver:
 
     # IF TRAIN THEN NO CHANGE:
     if mode == "train" or mode == "expl" or step == 0:
-      if step == 0:
-        print("\tSTEP == 0")
-      else:
-         print("\tTRAIN OR EXPL")
       acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
       obs = self._env.step(acts)  # Interact with the environment using the prepared actions
-      print("obs ", obs)
       self.prev_state = obs
       obs = {k: convert(v) for k, v in obs.items()}  # Convert observation data to appropriate data types
       assert all(len(x) == len(self._env) for x in obs.values()), obs
@@ -87,17 +82,23 @@ class Driver:
 
     # IF EVAL THEN SHOULD OBSERVE WORLD LESS:
     if mode == "eval":
-      print("\tEVAL")
+      imagine = agent.agent.wm.imagine
+      actor = agent.agent.task_behavior.ac.actor
+      policy_lambda = lambda s: actor(sg(s)).sample(seed=nj.rng())
+
+
       acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
       if step % 5 != 0:
-        print("\t\tSTEP != 5*t")
-        obs = imagine(self._acts["action"], self.prev_state, 1)
+        obs = self._env.step(acts)
+        print("\npotential action: ", policy_lambda)
+        print("\npotential state: ", self.prev_state)
+        print("\npotential horizon: ", 1)
+        imag_obs = imagine(policy_lambda, self.prev_state, 1)
         print("imagine obs ", obs)
+        self.prev_state = imag_obs
       else:
-        print("\t\tSTEP == 5*t")
-        obs = self._env.step(acts)  # Interact with the environment using the prepared actions
-        print("obs_EVAL ", obs)
-      self.prev_state = obs
+        obs = self._env.step(acts)
+        self.prev_state = obs
       obs = {k: convert(v) for k, v in obs.items()}
       assert all(len(x) == len(self._env) for x in obs.values()), obs
       

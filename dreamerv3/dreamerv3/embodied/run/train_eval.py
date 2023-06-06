@@ -116,7 +116,7 @@ def train_eval(
     if should_eval(step):
       print('Starting evaluation at step', int(step))
       driver_eval.reset()
-      driver_eval(policy_eval, episodes=max(len(eval_env), args.eval_eps), mode="eval", imagine = agent.agent.wm.imagine)
+      driver_eval(policy_eval, episodes=max(len(eval_env), args.eval_eps), mode="eval", agent=agent)
     driver_train(policy_train, steps=100, mode="train")
     if should_save(step):
       checkpoint.save()
