@@ -336,13 +336,9 @@ class WorldModel(nj.Module):
     # Get the first continuation signal.
     first_cont = (1.0 - start['is_terminal']).astype(jnp.float32)
 
-    print("\nImagine Start: ", start)
-
     # Filter the start state to only include the keys present in the initial state of the RSSM.
     keys = list(self.rssm.initial(1).keys())
     start = {k: v for k, v in start.items() if k in keys}
-
-    print("\nImagine Start Filtered: ", start)
 
     # Get the initial action using the policy.
     start['action'] = policy(start)

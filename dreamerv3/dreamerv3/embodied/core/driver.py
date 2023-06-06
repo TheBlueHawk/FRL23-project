@@ -22,7 +22,6 @@ class Driver:
     self._on_steps = []       # List to store step callback functions
     self._on_episodes = []    # List to store episode callback functions
     self.reset()              # Call the reset method to initialize the driver
-    self.prev_state = None
 
   def reset(self):
     # Initialize the action dictionary with zero-filled arrays and a reset flag
@@ -45,94 +44,37 @@ class Driver:
     step, episode = 0, 0
     # Continue the interaction loop until reaching the desired number of steps or episodes
     while step < steps or episode < episodes:
-      step, episode = self._step(policy, step, episode, mode, agent)
+      if mode == "train" or mode == "expl":
+        step, episode = self._step(policy, step, episode)
+      elif mode == "eval":
+        step, episode = self._step_eval(policy, step, episode, agent)
+      else:
+         print("Invalid mode")
 
   # performs a single step in the interaction loop. It receives observations from the environment, 
   # determines actions using the policy, updates internal state, and stores transition data
-  @jax.jit
-  def _step(self, policy, step, episode, mode="train", agent=None):
+  # @jax.jit
+  def _step(self, policy, step, episode):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
+    acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
+    obs = self._env.step(acts)  # Interact with the environment using the prepared actions
+    obs = {k: convert(v) for k, v in obs.items()}  # Convert observation data to appropriate data types
+    assert all(len(x) == len(self._env) for x in obs.values()), obs
     
-    # Action Processing: Filter actions and perform an action step in the environment
-    # Prepare actions for the environment based on the current policy
-
-
-    # IF TRAIN THEN NO CHANGE:
-    if mode == "train" or mode == "expl" or step == 0:
-      acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
-      obs = self._env.step(acts)  # Interact with the environment using the prepared actions
-      self.prev_state = obs
-      obs = {k: convert(v) for k, v in obs.items()}  # Convert observation data to appropriate data types
-      assert all(len(x) == len(self._env) for x in obs.values()), obs
-      
-      # Policy Execution: Get actions from the policy function based on the observations and state
-      acts, self._state = policy(obs, self._state, **self._kwargs)  # Determine new actions based on the observed states
-      acts = {k: convert(v) for k, v in acts.items()}  # Convert the action data to appropriate data types => does not seem to change much
-      
-      # Handling 'is_last' Observations: Adjust actions for terminated environments
-      if obs['is_last'].any():
-          mask = 1 - obs['is_last']
-          acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}  # Mask actions if an episode is done
-      acts['reset'] = obs['is_last'].copy()  # Include a reset flag for the environment if an episode is done
-      self._acts = acts
-      
-      # Transition Processing: Merge observations and actions into a transition dictionary
-      trns = {**obs, **acts}  # Combine observation and action data
-
-    # IF EVAL THEN SHOULD OBSERVE WORLD LESS:
-    if mode == "eval":
-
-      tree_map = jax.tree_util.tree_map
-      sg = lambda x: tree_map(jax.lax.stop_gradient, x)
-
-      imagine = agent.agent.wm.imagine_next_state
-      actor = agent.agent.task_behavior.ac.actor
-      policy_lambda = lambda s: actor(sg(s)).sample(seed=nj.rng())
-      acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
-
-      if step % 5 != 0 and step > 5:
-          
-          potential_start = self._state[0][0]
-          potential_start = {key: potential_start[key] for key in ["logit", "stoch", "deter"]}
-
-          obs = self._env.step(acts)
-
-          print("potential_start", potential_start)
-
-          # Check if any value in self.prev_state is already replicated
-          is_replicated = any(value.shape[0] > 1 for value in potential_start.values())
-
-          if is_replicated:
-              potential_start = potential_start
-          else:
-              potential_start = jax.device_put(potential_start)
-
-          imag_obs = imagine(policy_lambda, potential_start)
-          self.prev_state = imag_obs
-          imag_obs = {k: convert(v) for k, v in imag_obs.items()}
-          assert all(len(x) == len(self._env) for x in imag_obs.values()), imag_obs
-
-      else:
-          obs = self._env.step(acts)
-          self.prev_state = obs
-
-      obs = {k: convert(v) for k, v in obs.items()}
-      assert all(len(x) == len(self._env) for x in obs.values()), obs  
-      
-      # Policy Execution: Get actions from the policy function based on the observations and state
-      acts, self._state = policy(obs, self._state, **self._kwargs)
-      acts = {k: convert(v) for k, v in acts.items()}
-      
-      # Handling 'is_last' Observations: Adjust actions for terminated environments
-      if obs['is_last'].any():
-          mask = 1 - obs['is_last']
-          acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}
-      acts['reset'] = obs['is_last'].copy()
-      self._acts = acts
-      
-      # Transition Processing: Merge observations and actions into a transition dictionary
-      trns = {**obs, **acts} 
+    # Policy Execution: Get actions from the policy function based on the observations and state
+    acts, self._state = policy(obs, self._state, **self._kwargs)  # Determine new actions based on the observed states
+    acts = {k: convert(v) for k, v in acts.items()}  # Convert the action data to appropriate data types => does not seem to change much
+    
+    # Handling 'is_last' Observations: Adjust actions for terminated environments
+    if obs['is_last'].any():
+        mask = 1 - obs['is_last']
+        acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}  # Mask actions if an episode is done
+    acts['reset'] = obs['is_last'].copy()  # Include a reset flag for the environment if an episode is done
+    self._acts = acts
+    
+    # Transition Processing: Merge observations and actions into a transition dictionary
+    trns = {**obs, **acts}  # Combine observation and action data
     
     # Handling 'is_first' Observations: Clear episode dictionaries for new episodes
     if obs['is_first'].any():
@@ -153,6 +95,92 @@ class Driver:
             if done:
                 ep = {k: convert(v) for k, v in self._eps[i].items()}  # Convert episode data to appropriate data types
                 [fn(ep.copy(), i, **self._kwargs) for fn in self._on_episodes]  # Call episode callbacks for each environment instance
+                episode += 1
+    
+    # Return updated step and episode counters
+    return step, episode
+  
+  def _step_eval(self, policy, step, episode, agent):
+    agent.agent.config.jax.jit and print('Tracing _step_eval.')
+
+    # Assertion: Check that the lengths of all actions are consistent with the number of environments
+    assert all(len(x) == len(self._env) for x in self._acts.values())
+    acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
+
+    if step % 5 == 0:
+      obs = self._env.step(acts)
+      obs = {k: convert(v) for k, v in obs.items()}
+      assert all(len(x) == len(self._env) for x in obs.values()), obs
+      
+      # Policy Execution: Get actions from the policy function based on the observations and state
+      acts, self._state = policy(obs, self._state, **self._kwargs)
+      acts = {k: convert(v) for k, v in acts.items()}
+      
+      # Handling 'is_last' Observations: Adjust actions for terminated environments
+      if obs['is_last'].any():
+          mask = 1 - obs['is_last']
+          acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}  
+      acts['reset'] = obs['is_last'].copy() 
+      self._acts = acts
+      
+      # Transition Processing: Merge observations and actions into a transition dictionary
+      trns = {**obs, **acts} 
+
+    else:
+      import dreamerv3.ninjax as nj
+
+      tree_map = jax.tree_util.tree_map
+      sg = lambda x: tree_map(jax.lax.stop_gradient, x)
+
+      imagine_fct = agent.agent.wm.imagine_next_state
+      actor_fct = agent.agent.task_behavior.ac.actor
+      policy_fct = lambda s: actor_fct(sg(s)).sample(seed=nj.rng())
+
+      # print("state: ", self._state)
+      candidate = self._state[0][0]
+      candidate = jax.device_put(candidate, jax.devices("cpu")[0])
+      # print("candidate: ", candidate)
+
+      test = imagine_fct(policy_fct, candidate)
+      print(test)
+
+      obs = self._env.step(acts)
+      obs = {k: convert(v) for k, v in obs.items()}
+      assert all(len(x) == len(self._env) for x in obs.values()), obs
+      
+      # Policy Execution: Get actions from the policy function based on the observations and state
+      acts, self._state = policy(obs, self._state, **self._kwargs)
+      acts = {k: convert(v) for k, v in acts.items()}
+      
+      # Handling 'is_last' Observations: Adjust actions for terminated environments
+      if obs['is_last'].any():
+          mask = 1 - obs['is_last']
+          acts = {k: v * self._expand(mask, len(v.shape)) for k, v in acts.items()}  
+      acts['reset'] = obs['is_last'].copy() 
+      self._acts = acts
+      
+      # Transition Processing: Merge observations and actions into a transition dictionary
+      trns = {**obs, **acts}  
+
+    # Handling 'is_first' Observations: Clear episode dictionaries for new episodes
+    if obs['is_first'].any():
+        for i, first in enumerate(obs['is_first']):
+            if first:
+                self._eps[i].clear() 
+    
+    # Environment-wise Processing: Process transitions for each environment
+    for i in range(len(self._env)):
+        trn = {k: v[i] for k, v in trns.items()}  
+        [self._eps[i][k].append(v) for k, v in trn.items()] 
+        [fn(trn, i, **self._kwargs) for fn in self._on_steps] 
+        step += 1
+    
+    # Handling 'is_last' Observations (Episode Completion): Call episode callbacks for completed episodes
+    if obs['is_last'].any():
+        for i, done in enumerate(obs['is_last']):
+            if done:
+                ep = {k: convert(v) for k, v in self._eps[i].items()} 
+                [fn(ep.copy(), i, **self._kwargs) for fn in self._on_episodes]  
                 episode += 1
     
     # Return updated step and episode counters
