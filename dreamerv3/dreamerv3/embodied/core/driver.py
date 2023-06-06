@@ -1,6 +1,9 @@
 import collections
 import numpy as np
 from .basics import convert
+from . import ninjax as nj
+import jax
+import jax.numpy as jnp
 
 # class responsible for interacting with the environment using a given policy
 class Driver:
@@ -82,6 +85,10 @@ class Driver:
 
     # IF EVAL THEN SHOULD OBSERVE WORLD LESS:
     if mode == "eval":
+
+      tree_map = jax.tree_util.tree_map
+      sg = lambda x: tree_map(jax.lax.stop_gradient, x)
+
       imagine = agent.agent.wm.imagine
       actor = agent.agent.task_behavior.ac.actor
       policy_lambda = lambda s: actor(sg(s)).sample(seed=nj.rng())
