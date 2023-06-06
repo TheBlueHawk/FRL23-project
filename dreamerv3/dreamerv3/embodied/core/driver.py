@@ -1,7 +1,7 @@
 import collections
 import numpy as np
 from .basics import convert
-from . import ninjax as nj
+import dreamerv3.ninjax as nj
 import jax
 import jax.numpy as jnp
 
@@ -49,16 +49,13 @@ class Driver:
 
   # performs a single step in the interaction loop. It receives observations from the environment, 
   # determines actions using the policy, updates internal state, and stores transition data
+  @jax.jit
   def _step(self, policy, step, episode, mode="train", agent=None):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
     
     # Action Processing: Filter actions and perform an action step in the environment
     # Prepare actions for the environment based on the current policy
-
-    # print("_state", self._state, "\n")
-    # print("_acts", self._acts, "\n")
-    # print("_kwargs", self._kwargs, "\n")
 
 
     # IF TRAIN THEN NO CHANGE:
@@ -71,7 +68,7 @@ class Driver:
       
       # Policy Execution: Get actions from the policy function based on the observations and state
       acts, self._state = policy(obs, self._state, **self._kwargs)  # Determine new actions based on the observed states
-      acts = {k: convert(v) for k, v in acts.items()}  # Convert the action data to appropriate data types
+      acts = {k: convert(v) for k, v in acts.items()}  # Convert the action data to appropriate data types => does not seem to change much
       
       # Handling 'is_last' Observations: Adjust actions for terminated environments
       if obs['is_last'].any():
@@ -89,25 +86,39 @@ class Driver:
       tree_map = jax.tree_util.tree_map
       sg = lambda x: tree_map(jax.lax.stop_gradient, x)
 
-      imagine = agent.agent.wm.imagine
+      imagine = agent.agent.wm.imagine_next_state
       actor = agent.agent.task_behavior.ac.actor
       policy_lambda = lambda s: actor(sg(s)).sample(seed=nj.rng())
-
-
       acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
-      if step % 5 != 0:
-        obs = self._env.step(acts)
-        print("\npotential action: ", policy_lambda)
-        print("\npotential state: ", self.prev_state)
-        print("\npotential horizon: ", 1)
-        imag_obs = imagine(policy_lambda, self.prev_state, 1)
-        print("imagine obs ", obs)
-        self.prev_state = imag_obs
+
+      if step % 5 != 0 and step > 5:
+          
+          potential_start = self._state[0][0]
+          potential_start = {key: potential_start[key] for key in ["logit", "stoch", "deter"]}
+
+          obs = self._env.step(acts)
+
+          print("potential_start", potential_start)
+
+          # Check if any value in self.prev_state is already replicated
+          is_replicated = any(value.shape[0] > 1 for value in potential_start.values())
+
+          if is_replicated:
+              potential_start = potential_start
+          else:
+              potential_start = jax.device_put(potential_start)
+
+          imag_obs = imagine(policy_lambda, potential_start)
+          self.prev_state = imag_obs
+          imag_obs = {k: convert(v) for k, v in imag_obs.items()}
+          assert all(len(x) == len(self._env) for x in imag_obs.values()), imag_obs
+
       else:
-        obs = self._env.step(acts)
-        self.prev_state = obs
+          obs = self._env.step(acts)
+          self.prev_state = obs
+
       obs = {k: convert(v) for k, v in obs.items()}
-      assert all(len(x) == len(self._env) for x in obs.values()), obs
+      assert all(len(x) == len(self._env) for x in obs.values()), obs  
       
       # Policy Execution: Get actions from the policy function based on the observations and state
       acts, self._state = policy(obs, self._state, **self._kwargs)

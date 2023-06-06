@@ -336,9 +336,13 @@ class WorldModel(nj.Module):
     # Get the first continuation signal.
     first_cont = (1.0 - start['is_terminal']).astype(jnp.float32)
 
+    print("\nImagine Start: ", start)
+
     # Filter the start state to only include the keys present in the initial state of the RSSM.
     keys = list(self.rssm.initial(1).keys())
     start = {k: v for k, v in start.items() if k in keys}
+
+    print("\nImagine Start Filtered: ", start)
 
     # Get the initial action using the policy.
     start['action'] = policy(start)
@@ -367,6 +371,27 @@ class WorldModel(nj.Module):
 
     # Return the imagined trajectory.
     return traj
+  
+  def imagine_next_state(self, policy, start):
+    # This method generates an imagined next state using the given policy.
+
+    # Filter the start state to only include the keys present in the initial state of the RSSM.
+    # keys = list(self.rssm.initial(1).keys())
+    # start = {k: v for k, v in start.items() if k in keys}
+
+    # Get the initial action using the policy.
+    start['action'] = policy(start)
+
+    # Define a step function to propagate the state in the imagined trajectory.
+    def step(prev, _):
+        prev = prev.copy()
+        state = self.rssm.img_step(prev, prev.pop('action'))
+        return {**state, 'action': policy(state)}
+
+    # Use the scan function to iterate the step function once to generate the next state.
+    next_state = jax.lax.scan(step, (), start)[1]  # Scan once, discard the outputs except the final state
+
+    return next_state
 
   def report(self, data):
     # This method generates a report of the model's performance, useful for debugging and monitoring.
