@@ -92,8 +92,8 @@ class JAXAgent(embodied.Agent):
 
   def dataset(self, generator):
     batcher = embodied.Batcher(
-        sources=[generator] * self.batch_size,
-        workers=self.data_loaders,
+        sources=[generator] * self.batch_size, # repeated batch_size times (for parallel work?)
+        workers=self.data_loaders, # default = 8
         postprocess=lambda x: self._convert_inps(x, self.train_devices),
         prefetch_source=4, prefetch_batch=1)
     return batcher()

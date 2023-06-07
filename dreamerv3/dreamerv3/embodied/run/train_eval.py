@@ -66,7 +66,7 @@ def train_eval(
   while len(train_replay) < max(args.batch_steps, args.train_fill):
     driver_train(random_agent.policy, steps=100)
   print('Prefill eval dataset.')
-  while len(eval_replay) < max(args.batch_steps, args.eval_fill):
+  while len(eval_replay) < max(args.batch_steps, args.eval_fill): # for us, no loop as eval_replay = train_replay so already full
     driver_eval(random_agent.policy, steps=100)
   logger.add(metrics.result())
   logger.write()
@@ -76,7 +76,7 @@ def train_eval(
   state = [None]  # To be writable from train step function below.
   batch = [None]
   def train_step(tran, worker):
-    for _ in range(should_train(step)):
+    for _ in range(should_train(step)): # True once every 1/Ratio steps (default: 16)
       with timer.scope('dataset_train'):
         batch[0] = next(dataset_train)
       outs, state[0], mets = agent.train(batch[0], state[0])
@@ -84,9 +84,9 @@ def train_eval(
       if 'priority' in outs:
         train_replay.prioritize(outs['key'], outs['priority'])
       updates.increment()
-    if should_sync(updates):
+    if should_sync(updates): # some weird stuff to make several devices work together, for parallelization
       agent.sync()
-    if should_log(step):
+    if should_log(step): # every x seconds (config log_every) => add data to logger and save / print the metrics (here that we print long summary)
       logger.add(metrics.result())
       logger.add(agent.report(batch[0]), prefix='report')
       with timer.scope('dataset_eval'):
@@ -113,10 +113,10 @@ def train_eval(
       *args, mode='explore' if should_expl(step) else 'train')
   policy_eval = lambda *args: agent.policy(*args, mode='eval')
   while step < args.steps:
-    if should_eval(step):
+    if should_eval(step): # eval every "eval_every" steps, and always the first time
       print('Starting evaluation at step', int(step))
       driver_eval.reset()
-      driver_eval(policy_eval, episodes=max(len(eval_env), args.eval_eps))
+      driver_eval(policy_eval, episodes=max(len(eval_env), args.eval_eps)) # for us: one full episode in eval
     driver_train(policy_train, steps=100)
     if should_save(step):
       checkpoint.save()

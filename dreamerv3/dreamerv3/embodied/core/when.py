@@ -15,11 +15,11 @@ class Every:
     if self._every == 0:
       return False
     if self._prev is None:
-      self._prev = (step // self._every) * self._every
+      self._prev = (step // self._every) * self._every # reduce to closest smaller multiple of _every
       return self._initial
     if step >= self._prev + self._every:
       self._prev += self._every
-      return True
+      return True # true everytime the number of steps increased by more than _every
     return False
 
 
