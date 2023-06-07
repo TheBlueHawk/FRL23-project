@@ -126,7 +126,7 @@ class Driver:
       # Transition Processing: Merge observations and actions into a transition dictionary
       trns = {**obs, **acts} 
 
-    else:
+    else: # use imagine to determine what state we are on
       import dreamerv3.ninjax as nj
 
       tree_map = jax.tree_util.tree_map
@@ -136,10 +136,12 @@ class Driver:
       actor_fct = agent.agent.task_behavior.ac.actor
       policy_fct = lambda s: actor_fct(sg(s)).sample(seed=nj.rng())
 
+
       # print("state: ", self._state)
       candidate = self._state[0][0] # getting a state with the right format (i think), not sure if this is the one we'll use in the end though
       candidate = jax.device_put(candidate, jax.devices("cpu")[0])
-      # print("candidate: ", candidate)
+      # print("\n\n\ncandidate: ", candidate)
+
 
       test = imagine_fct(policy_fct, candidate) # cannot even run this, the rest needs to be modified
       print(test)
