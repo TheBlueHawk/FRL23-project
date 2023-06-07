@@ -2,6 +2,7 @@ def main():
 
   import warnings
   import dreamerv3
+  import time
   from dreamerv3 import embodied
   warnings.filterwarnings('ignore', '.*truncated to dtype int32.*')
 
@@ -9,7 +10,7 @@ def main():
   config = embodied.Config(dreamerv3.configs['defaults'])
   config = config.update(dreamerv3.configs['medium'])
   config = config.update({
-      'logdir': '~/logdir/run1',
+      'logdir': f'logdir/{int(time.time())}',
       'run.train_ratio': 64,
       'run.log_every': 30,  # Seconds
       'batch_size': 16,
