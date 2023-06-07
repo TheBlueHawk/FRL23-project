@@ -76,18 +76,14 @@ class Agent(nj.Module):
     
     # Encode the observations using the world model's encoder.
     embed = self.wm.encoder(obs)
-    
-    # Use the world model's recurrent stochastic state space model (rssm) to update the latent state based on the previous state, the encoded observation and a flag indicating whether it's the first observation.
-    latent, _ = self.wm.rssm.obs_step(
-        prev_latent, prev_action, embed, obs['is_first'])
+
+    latent, _ = self.wm.rssm.obs_step(prev_latent, prev_action, embed, obs['is_first']) # post = (z,h)
     
     # Execute the exploration behavior's policy, given the current latent state.
     self.expl_behavior.policy(latent, expl_state)
     
-    # Execute the task behavior's policy, given the current latent state, and update the task state.
-    task_outs, task_state = self.task_behavior.policy(latent, task_state) # actor-critic
+    task_outs, task_state = self.task_behavior.policy(latent, task_state) # actor policy, task_state just a "carry"
     
-    # Execute the exploration behavior's policy, given the current latent state, and update the exploration state.
     expl_outs, expl_state = self.expl_behavior.policy(latent, expl_state) # for us: same as task_behavior
     
     # Depending on the mode, choose which policy to use and what action to take.
@@ -102,13 +98,13 @@ class Agent(nj.Module):
     elif mode == 'train':
       outs = task_outs # actor output = distribution on actions
       outs['log_entropy'] = outs['action'].entropy()
-      outs['action'] = outs['action'].sample(seed=nj.rng())
+      outs['action'] = outs['action'].sample(seed=nj.rng()) # returns entropy of action and 1 sample of it
     
     # Update the states.
     state = ((latent, outs['action']), task_state, expl_state)
     
     # Return the policy outputs and the updated state.
-    return outs, state # outs is now [action sampled, entropy]
+    return outs, state # = (actions_sampled, actions_entropy), (((z,h), action_sampled), {}, {})
 
   def train(self, data, state):
     # This method is used to train the agent using the given data and state.
