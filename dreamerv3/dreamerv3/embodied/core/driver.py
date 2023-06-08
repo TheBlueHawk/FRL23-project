@@ -76,13 +76,27 @@ class Driver:
             if first:
                 self._eps[i].clear()  # Clear episode data if a new episode has started
     
-    # Environment-wise Processing: Process transitions for each environment
+    # # Environment-wise Processing: Process transitions for each environment
+    # for i in range(len(self._env)):
+    #     trn = {k: v[i] for k, v in trns.items()}  # Retrieve data specific to each environment instance
+    #     [self._eps[i][k].append(v) for k, v in trn.items()]  # Store transition data for each environment instance
+    #     [fn(trn, i, **self._kwargs) for fn in self._on_steps]  # Call step callbacks for each environment instance
+    #     step += 1
+
+    traj_list = []  # List to store the return values (if any)
     for i in range(len(self._env)):
-        trn = {k: v[i] for k, v in trns.items()}  # Retrieve data specific to each environment instance
-        [self._eps[i][k].append(v) for k, v in trn.items()]  # Store transition data for each environment instance
-        [fn(trn, i, **self._kwargs) for fn in self._on_steps]  # Call step callbacks for each environment instance
-        step += 1
+      trn = {k: v[i] for k, v in trns.items()}  # Retrieve data specific to each environment instance
+      [self._eps[i][k].append(v) for k, v in trn.items()]  # Store transition data for each environment instance
+      
+      for fn in self._on_steps:
+          output = fn(trn, i, **self._kwargs)
+          if output is not None:
+              traj_list.append(output)     
+      step += 1
+    if len(traj_list) > 0:
+      print("\t traj_list: ", traj_list[0]["action"].shape)
     
+
     # Handling 'is_last' Observations (Episode Completion): Call episode callbacks for completed episodes
     if obs['is_last'].any():
         for i, done in enumerate(obs['is_last']):

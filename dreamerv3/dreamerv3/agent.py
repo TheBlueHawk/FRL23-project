@@ -132,7 +132,7 @@ class Agent(nj.Module):
     start = tree_map(lambda x: x.reshape([-1] + list(x.shape[2:])), context)
 
     # Train the task behavior using the world model's imagine method, the start state and the context.
-    _, mets = self.task_behavior.train(self.wm.imagine, start, context)
+    traj, mets = self.task_behavior.train(self.wm.imagine, start, context)
 
     # Update the metrics dictionary with the metrics from the task behavior.
     metrics.update(mets)
@@ -146,7 +146,7 @@ class Agent(nj.Module):
     outs = {}
 
     # Return the outputs, the updated state, and the metrics.
-    return outs, state, metrics
+    return outs, state, metrics, traj
 
   def report(self, data):
     # This method is used to report the metrics of the agent's behaviors.

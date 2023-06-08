@@ -380,9 +380,9 @@ loconav:
   decoder: { mlp_keys: ".*", cnn_keys: "image" }
 
 mini: # only for quick run, not to actual run in experiment!
-  rssm.deter: 32
-  .*\.cnn_depth: 8
-  .*\.units: 128
+  rssm.deter: 16
+  .*\.cnn_depth: 4
+  .*\.units: 64
   .*\.layers: 1
 
 small:

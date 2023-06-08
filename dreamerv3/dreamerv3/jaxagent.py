@@ -66,23 +66,24 @@ class JAXAgent(embodied.Agent):
     return outs, state
 
   def train(self, data, state=None):
-    rng = self._next_rngs(self.train_devices)
-    if state is None:
-      state, self.varibs = self._init_train(self.varibs, rng, data['is_first'])
-    (outs, state, mets), self.varibs = self._train(
-        self.varibs, rng, data, state)
-    outs = self._convert_outs(outs, self.train_devices)
-    self._updates.increment()
-    if self._should_metrics(self._updates):
-      mets = self._convert_mets(mets, self.train_devices)
-    else:
-      mets = {}
-    if self._once:
-      self._once = False
-      assert jaxutils.Optimizer.PARAM_COUNTS
-      for name, count in jaxutils.Optimizer.PARAM_COUNTS.items():
-        mets[f'params_{name}'] = float(count)
-    return outs, state, mets
+      rng = self._next_rngs(self.train_devices)
+      if state is None:
+          state, self.varibs = self._init_train(self.varibs, rng, data['is_first'])
+      (outs, state, mets, traj), self.varibs = self._train(
+          self.varibs, rng, data, state)
+      outs = self._convert_outs(outs, self.train_devices)
+      self._updates.increment()
+      if self._should_metrics(self._updates):
+          mets = self._convert_mets(mets, self.train_devices)
+      else:
+          mets = {}
+      if self._once:
+          self._once = False
+          assert jaxutils.Optimizer.PARAM_COUNTS
+          for name, count in jaxutils.Optimizer.PARAM_COUNTS.items():
+              mets[f'params_{name}'] = float(count)
+      return outs, state, mets, traj
+
 
   def report(self, data):
     rng = self._next_rngs(self.train_devices)
