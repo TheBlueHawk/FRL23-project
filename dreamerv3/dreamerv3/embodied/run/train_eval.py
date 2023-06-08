@@ -92,8 +92,8 @@ def train_eval(
       with timer.scope('dataset_eval'):
         eval_batch = next(dataset_eval)
       logger.add(agent.report(eval_batch), prefix='eval')
-      logger.add(train_replay.stats, prefix='replay')
-      logger.add(eval_replay.stats, prefix='eval_replay')
+      logger.add(train_replay.stats, prefix='replay') # replay stats:  'size' ('inserts', 'samples', 'insert_wait_avg', 
+      logger.add(eval_replay.stats, prefix='eval_replay')           # 'insert_wait_frac', 'sample_wait_avg', 'sample_wait_frac')
       logger.add(timer.stats(), prefix='timer')
       logger.write(fps=True)
   driver_train.on_step(train_step)
