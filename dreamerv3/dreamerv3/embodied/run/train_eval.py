@@ -78,7 +78,7 @@ def train_eval(
   def train_step(tran, worker):
     for _ in range(should_train(step)): # True once every 1/Ratio steps (default: 16)
       with timer.scope('dataset_train'):
-        batch[0] = next(dataset_train)
+        batch[0] = next(dataset_train) # dictionary with dimension [batch_size, batch_length, x] (x depends on the key)
       outs, state[0], mets = agent.train(batch[0], state[0])
       metrics.add(mets, prefix='train')
       if 'priority' in outs:
