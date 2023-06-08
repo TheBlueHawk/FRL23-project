@@ -4,6 +4,7 @@ from .basics import convert
 import dreamerv3.ninjax as nj
 import jax
 import jax.numpy as jnp
+import dreamerv3.ninjax as nj
 
 # class responsible for interacting with the environment using a given policy
 class Driver:
@@ -101,7 +102,6 @@ class Driver:
     return step, episode
   
   def _step_eval(self, policy, step, episode, agent):
-    agent.agent.config.jax.jit and print('Tracing _step_eval.')
 
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
@@ -127,24 +127,31 @@ class Driver:
       trns = {**obs, **acts} 
 
     else: # use imagine to determine what state we are on
+
       import dreamerv3.ninjax as nj
+      import jax
 
       tree_map = jax.tree_util.tree_map
       sg = lambda x: tree_map(jax.lax.stop_gradient, x)
 
-      imagine_fct = agent.agent.wm.imagine_next_state
+      imagine_fct = nj.pure(agent.agent.wm.imagine_next_state)
       actor_fct = agent.agent.task_behavior.ac.actor
-      policy_fct = lambda s: actor_fct(sg(s)).sample(seed=nj.rng())
+
+      def policy_fct(s):
+        return actor_fct(sg(s)).sample(seed=nj.rng())
+
+      policy_fct = nj.pure(policy_fct)
 
 
       # print("state: ", self._state)
       candidate = self._state[0][0] # getting a state with the right format (i think), not sure if this is the one we'll use in the end though
       candidate = jax.device_put(candidate, jax.devices("cpu")[0])
-      # print("\n\n\ncandidate: ", candidate)
+      print("\n\n\ncandidate: ", candidate)
 
 
-      test = imagine_fct(policy_fct, candidate) # cannot even run this, the rest needs to be modified
+      test = imagine_fct(candidate, nj.rng(), policy_fct)
       print(test)
+
 
       obs = self._env.step(acts)
       obs = {k: convert(v) for k, v in obs.items()}
