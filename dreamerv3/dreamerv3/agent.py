@@ -263,6 +263,7 @@ class WorldModel(nj.Module):
 
     # Initialize an optimizer.
     self.opt = jaxutils.Optimizer(name='model_opt', **config.model_opt)
+    self.fake_opt = jaxutils.Optimizer(name='model_opt', **config.model_fake_opt) 
 
     # Create a dictionary of loss scales. Use different scales for image and vector data.
     scales = self.config.loss_scales.copy()
@@ -290,6 +291,22 @@ class WorldModel(nj.Module):
 
     # Train the modules using the optimizer. The loss function is defined elsewhere in the code.
     mets, (state, outs, metrics) = self.opt(
+        modules, self.loss, data, state, has_aux=True)
+
+    # Update the metrics with the metrics from the optimizer.
+    metrics.update(mets)
+
+    return state, outs, metrics
+  
+
+  def fake_train(self, data, state):
+    # This method trains the world model using the given data and state.
+
+    # Create a list of modules to train.
+    modules = [self.encoder, self.rssm, *self.heads.values()]
+
+    # Train the modules using the optimizer. The loss function is defined elsewhere in the code.
+    mets, (state, outs, metrics) = self.fake_opt(
         modules, self.loss, data, state, has_aux=True)
 
     # Update the metrics with the metrics from the optimizer.

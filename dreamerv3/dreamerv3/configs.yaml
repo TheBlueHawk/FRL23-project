@@ -186,7 +186,7 @@ defaults:
       warmup: 0,
       lateclip: 0.0,
     }
-  model_no_opt:
+  model_fake_opt:
     {
       opt: adam,
       lr: 1e-10,
