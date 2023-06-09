@@ -9,7 +9,7 @@ def main():
 
     # See configs.yaml for all options.
     config = embodied.Config(dreamerv3.configs['defaults'])  # Loading default configuration
-    config = config.update(dreamerv3.configs['medium'])  # Updating with medium configuration
+    config = config.update(dreamerv3.configs['mini'])  # Updating with medium configuration
     config = config.update({  # Further customizing configuration
         'logdir': f'logdir/{int(time.time())}',  # Directory for logs. Created fresh each time
         'run.train_ratio': 64,
