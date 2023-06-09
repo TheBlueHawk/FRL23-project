@@ -65,7 +65,7 @@ class JAXAgent(embodied.Agent):
     state = self._convert_outs(state, self.policy_devices)
     return outs, state
 
-  def train(self, data, state=None, imaginary=False):
+  def train(self, data, state=None, imaginary=0):
       rng = self._next_rngs(self.train_devices)
       if state is None:
           state, self.varibs = self._init_train(self.varibs, rng, data['is_first'])
@@ -226,7 +226,7 @@ class JAXAgent(embodied.Agent):
     data = self._dummy_batch({**obs_space, **act_space}, dims)
     data = self._convert_inps(data, self.train_devices)
     state, varibs = self._init_train(varibs, rng, data['is_first'])
-    varibs = self._train(varibs, rng, data, state, imaginary = 0, init_only=True)
+    varibs = self._train(varibs, rng, data, state, imaginary=0, init_only=True)
     # obs = self._dummy_batch(obs_space, (1,))
     # state, varibs = self._init_policy(varibs, rng, obs['is_first'])
     # varibs = self._policy(

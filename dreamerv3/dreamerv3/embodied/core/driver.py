@@ -48,7 +48,7 @@ class Driver:
   def _step(self, policy, step, episode):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
-    
+
     # Action Processing: Filter actions and perform an action step in the environment
     # Prepare actions for the environment based on the current policy
     acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
