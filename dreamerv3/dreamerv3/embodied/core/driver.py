@@ -37,17 +37,19 @@ class Driver:
   def on_episode(self, callback):
     self._on_episodes.append(callback)  # Add a callback function to the list of episode callbacks
 
-  def __call__(self, policy, steps=0, episodes=0):
+  def __call__(self, policy, steps=0, episodes=0, agent=None):
     step, episode = 0, 0
     # Continue the interaction loop until reaching the desired number of steps or episodes
     while step < steps or episode < episodes:
-      step, episode = self._step(policy, step, episode)
+      step, episode = self._step(policy, step, episode, agent)
 
   # performs a single step in the interaction loop. It receives observations from the environment, 
   # determines actions using the policy, updates internal state, and stores transition data
-  def _step(self, policy, step, episode):
+  def _step(self, policy, step, episode, agent):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
+
+    # _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
 
     # Action Processing: Filter actions and perform an action step in the environment
     # Prepare actions for the environment based on the current policy

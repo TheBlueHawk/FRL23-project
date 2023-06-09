@@ -158,7 +158,7 @@ def train(agent, env, replay, logger, args):
 
   # Run the training loop until the desired number of steps is reached
   while step < args.steps:
-    driver(policy, steps=100)
+    driver(policy, steps=100, agent=agent)
     # Save checkpoint periodically
     if should_save(step):
       checkpoint.save()
