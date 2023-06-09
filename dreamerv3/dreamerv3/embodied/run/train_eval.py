@@ -95,7 +95,7 @@ def train_eval(
 
       # new_state = (new_dict_state), new_action
 
-      _, _, _, traj = agent.train(batch[0], state[0], imaginary=True) #TODO: change the input to take current state and action instead
+      _, _, _, traj = agent.train(batch[0], state[0], imaginary=1) #TODO: change the input to take current state and action instead
       has_traj = True
       print("inside train_step: ", traj["action"].shape)
 
@@ -104,7 +104,7 @@ def train_eval(
     for _ in range(should_train(step)): # True once every 1/Ratio steps (default: 16)
       with timer.scope('dataset_train'):
         batch[0] = next(dataset_train) # dictionary with dimension [batch_size, batch_length, x] (x depends on the key)
-      outs, state[0], mets, _ = agent.train(batch[0], state[0])
+      outs, state[0], mets, _ = agent.train(batch[0], state[0],  imaginary=0)
       metrics.add(mets, prefix='train')
       if 'priority' in outs:
         train_replay.prioritize(outs['key'], outs['priority'])
