@@ -143,6 +143,9 @@ class Agent(nj.Module):
     # Train the world model using the data and update the state.
     # Obtain the world model's outputs and the metrics.
 
+    # def dummy_function():
+    #   return None, None, None
+
     # state, wm_outs, mets = jax.lax.cond(jnp.equal(imaginary, 0), lambda: self.wm.train(data, state), dummy_function)
 
     state, wm_outs, mets = self.wm.train(data, state)
@@ -158,14 +161,8 @@ class Agent(nj.Module):
     # Modify the shape of the context.
     start = tree_map(lambda x: x.reshape([-1] + list(x.shape[2:])), context)
 
-    def dummy_function():
-      return None, None
-
     # Train the task behavior using the world model's imagine method, the start state and the context.
-
-    jax.lax.cond(jnp.equal(imaginary, 0), lambda: self.wm.train(data, state), dummy_function)
-
-    # _, mets = self.task_behavior.train(self.wm.imagine, start, context)
+    _, mets = self.task_behavior.train(self.wm.imagine, start, context)
 
     policy = lambda s: self.task_behavior.ac.actor(sg(s)).sample(seed=nj.rng())
     traj = self.wm.imagine(policy, start, 1)
@@ -173,10 +170,10 @@ class Agent(nj.Module):
     # Update the metrics dictionary with the metrics from the task behavior.
     metrics.update(mets)
 
-    # If the exploration behavior is configured, train it and update the metrics dictionary. # I REMOVED IT BECAUSE I HOPE IT IS USELESS FOR US
-    # if self.config.expl_behavior != 'None':
-    #   _, mets = self.expl_behavior.train(self.wm.imagine, start, context)
-    #   metrics.update({'expl_' + key: value for key, value in mets.items()})
+    # If the exploration behavior is configured, train it and update the metrics dictionary.
+    if self.config.expl_behavior != 'None':
+      _, mets = self.expl_behavior.train(self.wm.imagine, start, context)
+      metrics.update({'expl_' + key: value for key, value in mets.items()})
 
     # Initialize an empty dictionary to store outputs.
     outs = {}

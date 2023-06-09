@@ -186,6 +186,16 @@ defaults:
       warmup: 0,
       lateclip: 0.0,
     }
+  model_no_opt:
+    {
+      opt: adam,
+      lr: 1e-10,
+      eps: 1e-8,
+      clip: 1000.0,
+      wd: 0.0,
+      warmup: 0,
+      lateclip: 0.0,
+    }
 
   # Actor Critic
   actor:
