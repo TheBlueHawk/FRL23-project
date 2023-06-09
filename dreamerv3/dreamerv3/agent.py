@@ -106,8 +106,30 @@ class Agent(nj.Module):
     # Return the policy outputs and the updated state.
     return outs, state # = (actions_sampled, actions_entropy), (((z,h), action_sampled), {}, {})
 
-  def train(self, data, state, imaginary=False):
+  def train(self, data, state, imaginary):
     # This method is used to train the agent using the given data and state.
+
+    # abstract_value = jnp.array(True, dtype=bool)  # Abstract tracer value
+    # concrete_value = abstract_value.astype(bool)  # Convert to concrete boolean
+
+    # print("abstract: ", abstract_value)
+    # print("concrete: ", concrete_value)
+
+    # print("imaginary: ", imaginary)
+    # print("imaginary type int: ", imaginary.astype(int))
+
+    # x = "this is a test"
+
+    # def true_func():
+    #     print(x)
+
+    # def false_func():
+    #     print("FALSE_FUNCTION IS PRINTED")
+  
+
+    # jax.lax.cond(jnp.equal(imaginary, 1), true_func, false_func)
+
+
 
     # If the configuration specifies to use JIT (Just-In-Time) compilation, log a message.
     self.config.jax.jit and print('Tracing train function.')
@@ -120,7 +142,12 @@ class Agent(nj.Module):
 
     # Train the world model using the data and update the state.
     # Obtain the world model's outputs and the metrics.
+
+    # state, wm_outs, mets = jax.lax.cond(jnp.equal(imaginary, 0), lambda: self.wm.train(data, state), dummy_function)
+
     state, wm_outs, mets = self.wm.train(data, state)
+
+    # state, wm_outs, mets = jax.lax.cond(jnp.equal(imaginary, 0), lambda: self.wm.train(data, state), lambda: self.wm.fake_train_wm_outs(data, state))
 
     # Update the metrics dictionary with the metrics from the world model.
     metrics.update(mets)
@@ -131,16 +158,25 @@ class Agent(nj.Module):
     # Modify the shape of the context.
     start = tree_map(lambda x: x.reshape([-1] + list(x.shape[2:])), context)
 
+    def dummy_function():
+      return None, None
+
     # Train the task behavior using the world model's imagine method, the start state and the context.
-    traj, mets = self.task_behavior.train(self.wm.imagine, start, context)
+
+    jax.lax.cond(jnp.equal(imaginary, 0), lambda: self.wm.train(data, state), dummy_function)
+
+    # _, mets = self.task_behavior.train(self.wm.imagine, start, context)
+
+    policy = lambda s: self.task_behavior.ac.actor(sg(s)).sample(seed=nj.rng())
+    traj = self.wm.imagine(policy, start, 1)
 
     # Update the metrics dictionary with the metrics from the task behavior.
     metrics.update(mets)
 
-    # If the exploration behavior is configured, train it and update the metrics dictionary.
-    if self.config.expl_behavior != 'None':
-      _, mets = self.expl_behavior.train(self.wm.imagine, start, context)
-      metrics.update({'expl_' + key: value for key, value in mets.items()})
+    # If the exploration behavior is configured, train it and update the metrics dictionary. # I REMOVED IT BECAUSE I HOPE IT IS USELESS FOR US
+    # if self.config.expl_behavior != 'None':
+    #   _, mets = self.expl_behavior.train(self.wm.imagine, start, context)
+    #   metrics.update({'expl_' + key: value for key, value in mets.items()})
 
     # Initialize an empty dictionary to store outputs.
     outs = {}
