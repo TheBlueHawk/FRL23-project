@@ -65,12 +65,12 @@ class JAXAgent(embodied.Agent):
     state = self._convert_outs(state, self.policy_devices)
     return outs, state
 
-  def train(self, data, state=None):
+  def train(self, data, state=None, imaginary=False):
       rng = self._next_rngs(self.train_devices)
       if state is None:
           state, self.varibs = self._init_train(self.varibs, rng, data['is_first'])
       (outs, state, mets, traj), self.varibs = self._train(
-          self.varibs, rng, data, state)
+          self.varibs, rng, data, state, imaginary)
       outs = self._convert_outs(outs, self.train_devices)
       self._updates.increment()
       if self._should_metrics(self._updates):
@@ -158,7 +158,7 @@ class JAXAgent(embodied.Agent):
     self._policy = nj.pure(self.agent.policy)
     self._train = nj.pure(self.agent.train)
     self._report = nj.pure(self.agent.report)
-    if len(self.train_devices) == 1:
+    if len(self.train_devices) == 1: # default settings come here
       kw = dict(device=self.train_devices[0])
       self._init_train = nj.jit(self._init_train, **kw)
       self._train = nj.jit(self._train, **kw)

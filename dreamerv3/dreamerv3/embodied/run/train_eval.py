@@ -76,10 +76,35 @@ def train_eval(
   state = [None]  # To be writable from train step function below.
   batch = [None]
   def train_step(tran, worker):
+    # create imaginary trajectory first:
+    has_traj = False
+    if batch[0] is not None and state[0] is not None:
+      # new_dict_batch = {}
+      # new_dict_state = {}
+      # (state_), action = state[0]
+      # print("shape of state[0] deter", state_['deter'].shape)
+      # print("shape of state[0] logit", state_['logit'].shape)
+      # print("shape of state[0] stoch", state_['stoch'].shape)
+      # print("shape of state[0] action", action.shape)
+
+      # for key, value in batch[0].items():
+      #   new_dict_batch[key] = value[0:1, 0:1, :]  # Extract the first value and reshape to size [1, 1, x]
+      # for key, value in state_.items():
+      #   new_dict_state[key] = value[0:1, 0:1, :]  # Extract the first value and reshape to size [1, 1, x]
+      # new_action = action[0:1,:]
+
+      # new_state = (new_dict_state), new_action
+
+      _, _, _, traj = agent.train(batch[0], state[0], imaginary=True) #TODO: change the input to take current state and action instead
+      has_traj = True
+      print("inside train_step: ", traj["action"].shape)
+
+    # regular function afterwards
+
     for _ in range(should_train(step)): # True once every 1/Ratio steps (default: 16)
       with timer.scope('dataset_train'):
         batch[0] = next(dataset_train) # dictionary with dimension [batch_size, batch_length, x] (x depends on the key)
-      outs, state[0], mets = agent.train(batch[0], state[0])
+      outs, state[0], mets, _ = agent.train(batch[0], state[0])
       metrics.add(mets, prefix='train')
       if 'priority' in outs:
         train_replay.prioritize(outs['key'], outs['priority'])
@@ -96,6 +121,9 @@ def train_eval(
       logger.add(eval_replay.stats, prefix='eval_replay')           # 'insert_wait_frac', 'sample_wait_avg', 'sample_wait_frac')
       logger.add(timer.stats(), prefix='timer')
       logger.write(fps=True)
+    if has_traj:
+      return traj
+    return None
   driver_train.on_step(train_step)
 
   checkpoint = embodied.Checkpoint(logdir / 'checkpoint.ckpt')

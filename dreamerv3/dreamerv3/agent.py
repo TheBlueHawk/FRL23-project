@@ -106,7 +106,7 @@ class Agent(nj.Module):
     # Return the policy outputs and the updated state.
     return outs, state # = (actions_sampled, actions_entropy), (((z,h), action_sampled), {}, {})
 
-  def train(self, data, state):
+  def train(self, data, state, imaginary=False):
     # This method is used to train the agent using the given data and state.
 
     # If the configuration specifies to use JIT (Just-In-Time) compilation, log a message.
@@ -491,6 +491,8 @@ class ImagActorCritic(nj.Module):
       # The loss and metrics for the actor are computed based on this trajectory.
       loss, metrics = self.loss(traj)
       return loss, (traj, metrics)
+    
+    #TODO: change this function not to learn when set to imaginary !
     
     # The optimizer updates the parameters of the actor to minimize the loss.
     # The updated metrics from the optimizer and from each critic's training are collected.
