@@ -96,6 +96,13 @@ def train_eval(
       # new_state = (new_dict_state), new_action
 
       # print shape of batch[0] and state[0] for each key:
+      for key, value in batch[0].items():
+        print("shape of batch[0] ", key, value.shape)
+
+      for key, value in state[0][0].items():
+        print("shape of state[0] ", key, value.shape)
+
+      print("shape of state[0] action", state[0][1].shape)
 
       _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
       # print("batch : ",batch[0])

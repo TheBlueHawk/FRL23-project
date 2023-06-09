@@ -72,9 +72,9 @@ class Driver:
 
 
     # _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
-    print("obs: ", obs)
-    print("self.state : ",self._state)
-    print("acts : ", acts)
+    # print("obs: ", obs)
+    # print("self.state : ",self._state)
+    # print("acts : ", acts)
 
 
     #  dict(action_sampled, id, is_first, is_last, is_terminal, reset, reward, state_vec)
@@ -82,14 +82,31 @@ class Driver:
     if agent is not None:
     
       batch_of_one = {"action": acts["action"], "id": 1, "is_first": obs["is_first"], "is_last": obs["is_last"], "is_terminal": obs['is_terminal'], "reset": acts['reset'], "reward": obs["reward"], "state_vec": obs["state_vec"]}
-      print("batch of one: ",batch_of_one)
+      for key, value in batch_of_one.items():
+        if isinstance(value, int):
+          print(key, value)
+        else:
+          print(key, value.shape)
+
+      print("Colin: space")
       #  batch of (dict(deter, logit, stoch), action_sampled)
       if self._state is not None:
         (dict_state, action), _, _ = self._state
         state_of_one = (dict_state, action)
-        print("state of one: ",state_of_one)
 
-      _, _, _, traj= agent.train(batch_of_one, state_of_one, imaginary=1) 
+        for key, value in state_of_one[0].items():
+          if isinstance(value, int):
+            print(key, value)
+          else:
+            print(key, value.shape)
+
+
+        print("Colin: space 2")
+
+        print(state_of_one[1].shape)
+
+
+      _, _, _, traj= agent.train(batch_of_one, state_of_one, imaginary=1)
       print("traj: ",traj)
 
     

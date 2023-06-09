@@ -297,6 +297,12 @@ class WorldModel(nj.Module):
     # Split the state into previous latent state and previous action.
     prev_latent, prev_action = state
 
+    print("prev_action", prev_action.shape)
+    print("data['action']", data['action'].shape)
+
+    print("prev_action[:, None]", prev_action[:, None].shape)
+    print("data['action'][:, :-1]", data['action'][:, :-1].shape)
+
     # Concatenate previous actions with the current actions (excluding the last action in the data).
     prev_actions = jnp.concatenate([prev_action[:, None], data['action'][:, :-1]], 1)
 
