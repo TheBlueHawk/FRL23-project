@@ -49,8 +49,6 @@ class Driver:
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
 
-    # _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
-
     # Action Processing: Filter actions and perform an action step in the environment
     # Prepare actions for the environment based on the current policy
     acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
@@ -71,6 +69,29 @@ class Driver:
     
     # Transition Processing: Merge observations and actions into a transition dictionary
     trns = {**obs, **acts}  # Combine observation and action data
+
+
+    # _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
+    print("obs: ", obs)
+    print("self.state : ",self._state)
+    print("acts : ", acts)
+
+
+    #  dict(action_sampled, id, is_first, is_last, is_terminal, reset, reward, state_vec)
+
+    if agent is not None:
+    
+      batch_of_one = {"action": acts["action"], "id": 1, "is_first": obs["is_first"], "is_last": obs["is_last"], "is_terminal": obs['is_terminal'], "reset": acts['reset'], "reward": obs["reward"], "state_vec": obs["state_vec"]}
+      print("batch of one: ",batch_of_one)
+      #  batch of (dict(deter, logit, stoch), action_sampled)
+      if self._state is not None:
+        (dict_state, action), _, _ = self._state
+        state_of_one = (dict_state, action)
+        print("state of one: ",state_of_one)
+
+      _, _, _, traj= agent.train(batch_of_one, state_of_one, imaginary=1) 
+      print("traj: ",traj)
+
     
     # Handling 'is_first' Observations: Clear episode dictionaries for new episodes
     if obs['is_first'].any():

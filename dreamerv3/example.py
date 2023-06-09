@@ -20,7 +20,7 @@ def main():
         'decoder.mlp_keys': '.*',
         'encoder.cnn_keys': '$^',
         'decoder.cnn_keys': '$^',
-        'jax.platform': 'cpu',
+        # 'jax.platform': 'cpu',
     })
     config = embodied.Flags(config).parse()  # Parsing final configuration
 
@@ -49,7 +49,8 @@ def main():
         batch_steps=config.batch_size * config.batch_length)  # Arguments for training
     # embodied.run.train(agent, env, replay, logger, args)  # Starting the training process
     # embodied.run.eval_only(agent, env, logger, args)  # Evaluation mode
-    embodied.run.train(agent, env, env, replay, replay, logger, args)  # Training and evaluation mode
+    # embodied.run.train_eval(agent, env, env, replay, replay, logger, args)  # Training and evaluation mode
+    embodied.run.train(agent, env, replay, logger, args)  # Training and evaluation mode
 
 if __name__ == '__main__':
     main()

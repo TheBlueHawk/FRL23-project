@@ -95,7 +95,11 @@ def train_eval(
 
       # new_state = (new_dict_state), new_action
 
-      _, _, _, traj = agent.train(batch[0], state[0], imaginary=1) #TODO: change the input to take current state and action instead
+      # print shape of batch[0] and state[0] for each key:
+
+      _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
+      # print("batch : ",batch[0])
+      # print("state : ",state[0])
       has_traj = True
       print("inside train_step: ", traj["action"].shape)
 

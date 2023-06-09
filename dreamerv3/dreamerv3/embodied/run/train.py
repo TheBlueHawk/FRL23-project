@@ -91,7 +91,7 @@ def train(agent, env, replay, logger, args):
   print('Prefill train dataset.') 
   random_agent = embodied.RandomAgent(env.act_space)
   while len(replay) < max(args.batch_steps, args.train_fill):
-    driver(random_agent.policy, steps=100)
+    driver(random_agent.policy, steps=100, agent=None)
   
   # Log metrics after prefilling dataset
   logger.add(metrics.result())
@@ -108,7 +108,7 @@ def train(agent, env, replay, logger, args):
     for _ in range(should_train(step)):
       with timer.scope('dataset'):
         batch[0] = next(dataset)
-      outs, state[0], mets = agent.train(batch[0], state[0])  # Training the agent
+      outs, state[0], mets, _ = agent.train(batch[0], state[0], imaginary=0)  # Training the agent
       metrics.add(mets, prefix='train')  # Logging training metrics
 
       # Prioritize replay buffer if priorities are available in training outputs
