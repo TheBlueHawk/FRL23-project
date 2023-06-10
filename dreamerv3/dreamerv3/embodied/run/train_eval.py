@@ -99,10 +99,13 @@ def train_eval(
       for key, value in batch[0].items():
         print("shape of batch[0] ", key, value.shape)
 
-      for key, value in state[0][0].items():
+      print("batch 0 : ", batch[0])
+
+
+      for key, value in state[0].items():
         print("shape of state[0] ", key, value.shape)
 
-      print("shape of state[0] action", state[0][1].shape)
+      # print("shape of state[0] action", state[0][1].shape)
 
       _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
       # print("batch : ",batch[0])

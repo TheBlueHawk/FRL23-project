@@ -81,29 +81,46 @@ class Driver:
 
     if agent is not None:
     
-      batch_of_one = {"action": acts["action"], "id": 1, "is_first": obs["is_first"], "is_last": obs["is_last"], "is_terminal": obs['is_terminal'], "reset": acts['reset'], "reward": obs["reward"], "state_vec": obs["state_vec"]}
-      for key, value in batch_of_one.items():
-        if isinstance(value, int):
-          print(key, value)
-        else:
-          print(key, value.shape)
+      # batch_of_one = {"action": [acts["action"]], "id": [[[  5, 225, 239,  91, 186, 171,  68, 255, 141, 123, 117, 223, 96, 110, 252, 155]]], "is_first": [obs["is_first"]], "is_last": [obs["is_last"]], "is_terminal": [obs['is_terminal']], "reset": [acts['reset']], "reward": [obs["reward"]], "state_vec": [[obs["state_vec"]]]}
+      # batch_of_one = {"action": acts["action"], "id": [[  5, 225, 239,  91, 186, 171,  68, 255, 141, 123, 117, 223, 96, 110, 252, 155]], "is_first": obs["is_first"], "is_last": obs["is_last"], "is_terminal": obs['is_terminal'], "reset": acts['reset'], "reward": obs["reward"], "state_vec": obs["state_vec"]}
+      batch_of_one = {
+          "action": np.array([acts["action"]], dtype=np.float32),
+          "id": np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]]], dtype=np.uint8),
+          "is_first": np.array([[obs["is_first"]]], dtype=np.bool),
+          "is_last": np.array([[obs["is_last"]]], dtype=np.bool),
+          "is_terminal": np.array([[obs["is_terminal"]]], dtype=np.bool),
+          "reset": np.array([[acts["reset"]]], dtype=np.bool),
+          "reward": np.array([[obs["reward"]]], dtype=np.float32),
+          "state_vec": np.array([obs["state_vec"]], dtype=np.float32)
+      }
+      
+      print(batch_of_one)
+      
+      # for key, value in batch_of_one.items():
+      #     if isinstance(value, int):
+      #         print(key, value)
+      #     elif isinstance(value, list):
+      #         print(key, value[0].shape)
+      #     else:
+      #         print(key, "Unknown type")
 
-      print("Colin: space")
+
+      # print("Colin: space")
       #  batch of (dict(deter, logit, stoch), action_sampled)
       if self._state is not None:
         (dict_state, action), _, _ = self._state
         state_of_one = (dict_state, action)
 
-        for key, value in state_of_one[0].items():
-          if isinstance(value, int):
-            print(key, value)
-          else:
-            print(key, value.shape)
+      #   for key, value in state_of_one[0].items():
+      #     if isinstance(value, int):
+      #       print(key, value)
+      #     else:
+      #       print(key, value.shape)
 
 
-        print("Colin: space 2")
+      #   print("Colin: space 2")
 
-        print(state_of_one[1].shape)
+      #   print(state_of_one[1].shape)
 
 
       _, _, _, traj= agent.train(batch_of_one, state_of_one, imaginary=1)
