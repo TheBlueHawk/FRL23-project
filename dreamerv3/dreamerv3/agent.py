@@ -149,28 +149,18 @@ class Agent(nj.Module):
     outs = {}
 
     # Layout of function if we use img_step:
+    print(state)
+    print(data)
 
     # need to change if / else by jax function: e.g. cond, where, equal, etc.
-    if imaginary:
+    def model_fn(self, state, data, imaginary):
+      def function_imaginary(args):
+        state, data = args
+        img_step = self.wm.rssm.img_step
+        return img_step(state[0], data["action"]), None, None, None
 
-      # import img_step:
-      img_step = self.wm.RSSM.img_step
-
-      # need to import state and action in right format,
-      # we could import them as data and state as long as the other functions are not triggered when imaginary = 1
-
-      action = data["action"]
-      prior = img_step(state, action)
-
-      # likely that jax requerets to have the same kind of outputs as if imaginary = 0
-      return prior, None, None, None
-    
-      # one draft of how to do it:
-      def function_imaginary(state, data):
-        img_step = self.wm.RSSM.img_step
-        return img_step(state, data["action"]), None, None
-      
-      def function_real(state, data):
+      def function_real(args):
+        state, data = args
         metrics = {}
         data = self.preprocess(data)
         state, wm_outs, mets = self.wm.train(data, state)
@@ -181,8 +171,12 @@ class Agent(nj.Module):
         metrics.update(mets)
         outs = {}
 
-      outputs = jax.lax.cond(imaginary, lambda _: function_imaginary(), lambda _: function_real(), None)
+        return state, wm_outs, metrics, outs  # This should match the outputs of function_imaginary
+
+      outputs = jax.lax.cond(imaginary, (state, data), function_imaginary, (state, data), function_real)
       return outputs
+
+    state, wm_outs, metrics, outs = model_fn(self, state, data, imaginary)
 
 
 

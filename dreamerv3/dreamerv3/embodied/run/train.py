@@ -110,7 +110,8 @@ def train(agent, env, replay, logger, args):
     for _ in range(should_train(step)):
       with timer.scope('dataset'):
         batch[0] = next(dataset)
-      outs, state[0], mets, _ = agent.train(batch[0], state[0], imaginary=0)  # Training the agent
+      outs, state[0], mets, _ = agent.train(batch[0], state[0], imaginary=1)  # Training the agent
+      print(f"Colin: {outs}")
       metrics.add(mets, prefix='train')  # Logging training metrics
 
       # Prioritize replay buffer if priorities are available in training outputs
