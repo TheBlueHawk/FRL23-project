@@ -41,14 +41,14 @@ class Driver:
     step, episode = 0, 0
     # Continue the interaction loop until reaching the desired number of steps or episodes
     while step < steps or episode < episodes:
-      step, episode = self._step(policy, step, episode, agent)
+      step, episode = self._step(policy, step, episode, agent=agent)
 
   # performs a single step in the interaction loop. It receives observations from the environment, 
   # determines actions using the policy, updates internal state, and stores transition data
-  def _step(self, policy, step, episode, agent):
+  def _step(self, policy, step, episode, agent=None):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
-
+    
     # Action Processing: Filter actions and perform an action step in the environment
     # Prepare actions for the environment based on the current policy
     acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
@@ -69,63 +69,6 @@ class Driver:
     
     # Transition Processing: Merge observations and actions into a transition dictionary
     trns = {**obs, **acts}  # Combine observation and action data
-
-
-    # _, _, _, traj = agent.train(batch[0], state[0], imaginary=1)
-    # print("obs: ", obs)
-    # print("self.state : ",self._state)
-    # print("acts : ", acts)
-
-
-    #  dict(action_sampled, id, is_first, is_last, is_terminal, reset, reward, state_vec)
-
-    if agent is not None:
-    
-      # batch_of_one = {"action": [acts["action"]], "id": [[[  5, 225, 239,  91, 186, 171,  68, 255, 141, 123, 117, 223, 96, 110, 252, 155]]], "is_first": [obs["is_first"]], "is_last": [obs["is_last"]], "is_terminal": [obs['is_terminal']], "reset": [acts['reset']], "reward": [obs["reward"]], "state_vec": [[obs["state_vec"]]]}
-      # batch_of_one = {"action": acts["action"], "id": [[  5, 225, 239,  91, 186, 171,  68, 255, 141, 123, 117, 223, 96, 110, 252, 155]], "is_first": obs["is_first"], "is_last": obs["is_last"], "is_terminal": obs['is_terminal'], "reset": acts['reset'], "reward": obs["reward"], "state_vec": obs["state_vec"]}
-      batch_of_one = {
-          "action": np.array([acts["action"]], dtype=np.float32),
-          "id": np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]]], dtype=np.uint8),
-          "is_first": np.array([[obs["is_first"]]], dtype=np.bool),
-          "is_last": np.array([[obs["is_last"]]], dtype=np.bool),
-          "is_terminal": np.array([[obs["is_terminal"]]], dtype=np.bool),
-          "reset": np.array([[acts["reset"]]], dtype=np.bool),
-          "reward": np.array([[obs["reward"]]], dtype=np.float32),
-          "state_vec": np.array([obs["state_vec"]], dtype=np.float32)
-      }
-      
-      print(batch_of_one)
-      
-      # for key, value in batch_of_one.items():
-      #     if isinstance(value, int):
-      #         print(key, value)
-      #     elif isinstance(value, list):
-      #         print(key, value[0].shape)
-      #     else:
-      #         print(key, "Unknown type")
-
-
-      # print("Colin: space")
-      #  batch of (dict(deter, logit, stoch), action_sampled)
-      if self._state is not None:
-        (dict_state, action), _, _ = self._state
-        state_of_one = (dict_state, action)
-
-      #   for key, value in state_of_one[0].items():
-      #     if isinstance(value, int):
-      #       print(key, value)
-      #     else:
-      #       print(key, value.shape)
-
-
-      #   print("Colin: space 2")
-
-      #   print(state_of_one[1].shape)
-
-
-      _, _, _, traj= agent.train(batch_of_one, state_of_one, imaginary=1)
-      print("traj: ",traj)
-
     
     # Handling 'is_first' Observations: Clear episode dictionaries for new episodes
     if obs['is_first'].any():
@@ -133,27 +76,13 @@ class Driver:
             if first:
                 self._eps[i].clear()  # Clear episode data if a new episode has started
     
-    # # Environment-wise Processing: Process transitions for each environment
-    # for i in range(len(self._env)):
-    #     trn = {k: v[i] for k, v in trns.items()}  # Retrieve data specific to each environment instance
-    #     [self._eps[i][k].append(v) for k, v in trn.items()]  # Store transition data for each environment instance
-    #     [fn(trn, i, **self._kwargs) for fn in self._on_steps]  # Call step callbacks for each environment instance
-    #     step += 1
-
-    traj_list = []  # List to store the return values (if any)
+    # Environment-wise Processing: Process transitions for each environment
     for i in range(len(self._env)):
-      trn = {k: v[i] for k, v in trns.items()}  # Retrieve data specific to each environment instance
-      [self._eps[i][k].append(v) for k, v in trn.items()]  # Store transition data for each environment instance
-      
-      for fn in self._on_steps:
-          output = fn(trn, i, **self._kwargs)
-          if output is not None:
-              traj_list.append(output)     
-      step += 1
-    if len(traj_list) > 0:
-      print("\t traj_list: ", traj_list[0]["action"].shape)
+        trn = {k: v[i] for k, v in trns.items()}  # Retrieve data specific to each environment instance
+        [self._eps[i][k].append(v) for k, v in trn.items()]  # Store transition data for each environment instance
+        [fn(trn, i, **self._kwargs) for fn in self._on_steps]  # Call step callbacks for each environment instance
+        step += 1
     
-
     # Handling 'is_last' Observations (Episode Completion): Call episode callbacks for completed episodes
     if obs['is_last'].any():
         for i, done in enumerate(obs['is_last']):

@@ -104,6 +104,8 @@ def train(agent, env, replay, logger, args):
   
   # Define the function to be run on each training step
   def train_step(tran, worker):
+    
+    
     # Perform training iterations based on the should_train condition
     for _ in range(should_train(step)):
       with timer.scope('dataset'):

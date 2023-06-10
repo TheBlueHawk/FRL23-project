@@ -117,8 +117,6 @@ class Agent(nj.Module):
     # Preprocess the data.
     data = self.preprocess(data)
 
-    # state, wm_outs, mets = self.wm.train(data, state)
-
     state, wm_outs, mets = self.wm.train(data, state)
     metrics.update(mets)
     context = {**data, **wm_outs['post']}
@@ -127,7 +125,6 @@ class Agent(nj.Module):
     traj = self.wm.imagine(policy, start, 1)
 
     # Update the metrics dictionary with the metrics from the world model.
-    
     metrics = {}
     metrics.update(mets)
 
@@ -154,37 +151,38 @@ class Agent(nj.Module):
     # Layout of function if we use img_step:
 
     # need to change if / else by jax function: e.g. cond, where, equal, etc.
-    # if imaginary:
+    if imaginary:
 
-    #   # import img_step:
-    #   img_step = self.wm.RSSM.img_step
+      # import img_step:
+      img_step = self.wm.RSSM.img_step
 
-    #   # need to import state and action in right format,
-    #   # we could import them as data and state as long as the other functions are not triggered when imaginary = 1
+      # need to import state and action in right format,
+      # we could import them as data and state as long as the other functions are not triggered when imaginary = 1
 
-    #   action = data["action"]
-    #   prior = img_step(state, action)
+      action = data["action"]
+      prior = img_step(state, action)
 
-    #   # likely that jax requereis to have the same kind of outputs as if imaginary = 0
-    #   return prior, None, None, None
+      # likely that jax requerets to have the same kind of outputs as if imaginary = 0
+      return prior, None, None, None
     
-    # # one draft of how to do it:
-    # def function_imaginary(state, data):
-    #   img_step = self.wm.RSSM.img_step
-    #   return img_step(state, data["action"]), None, None
-    # def function_real(state, data):
-    #   metrics = {}
-    #   data = self.preprocess(data)
-    #   state, wm_outs, mets = self.wm.train(data, state)
-    #   metrics.update(mets)
-    #   context = {**data, **wm_outs['post']}
-    #   start = tree_map(lambda x: x.reshape([-1] + list(x.shape[2:])), context)
-    #   _, mets = self.task_behavior.train(self.wm.imagine, start, context)
-    #   metrics.update(mets)
-    #   outs = {}
+      # one draft of how to do it:
+      def function_imaginary(state, data):
+        img_step = self.wm.RSSM.img_step
+        return img_step(state, data["action"]), None, None
+      
+      def function_real(state, data):
+        metrics = {}
+        data = self.preprocess(data)
+        state, wm_outs, mets = self.wm.train(data, state)
+        metrics.update(mets)
+        context = {**data, **wm_outs['post']}
+        start = tree_map(lambda x: x.reshape([-1] + list(x.shape[2:])), context)
+        _, mets = self.task_behavior.train(self.wm.imagine, start, context)
+        metrics.update(mets)
+        outs = {}
 
-    # outputs = jax.lax.cond(imaginary, lambda _: function_imaginary(), lambda _: function_real(), None)
-    # return outputs
+      outputs = jax.lax.cond(imaginary, lambda _: function_imaginary(), lambda _: function_real(), None)
+      return outputs
 
 
 
