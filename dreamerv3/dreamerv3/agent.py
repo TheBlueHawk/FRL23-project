@@ -117,8 +117,6 @@ class Agent(nj.Module):
     # Preprocess the data.
     data = self.preprocess(data)
 
-    # state, wm_outs, mets = self.wm.train(data, state)
-
     state, wm_outs, mets = self.wm.train(data, state)
     metrics.update(mets)
     context = {**data, **wm_outs['post']}
@@ -127,7 +125,6 @@ class Agent(nj.Module):
     traj = self.wm.imagine(policy, start, 1)
 
     # Update the metrics dictionary with the metrics from the world model.
-    
     metrics = {}
     metrics.update(mets)
 
@@ -151,40 +148,32 @@ class Agent(nj.Module):
 
     outs = {}
 
-    # Layout of function if we use img_step:
 
     # need to change if / else by jax function: e.g. cond, where, equal, etc.
-    # if imaginary:
+    def model_fn(self, state, data, imaginary):
+      def function_imaginary(args):
+        state, data = args
+        img_step = self.wm.rssm.img_step
+        return img_step(state[0], data["action"]), None, None, None
 
-    #   # import img_step:
-    #   img_step = self.wm.RSSM.img_step
+      def function_real(args):
+        state, data = args
+        metrics = {}
+        data = self.preprocess(data)
+        state, wm_outs, mets = self.wm.train(data, state)
+        metrics.update(mets)
+        context = {**data, **wm_outs['post']}
+        start = tree_map(lambda x: x.reshape([-1] + list(x.shape[2:])), context)
+        _, mets = self.task_behavior.train(self.wm.imagine, start, context)
+        metrics.update(mets)
+        outs = {}
 
-    #   # need to import state and action in right format,
-    #   # we could import them as data and state as long as the other functions are not triggered when imaginary = 1
+        return state, wm_outs, metrics, outs  # This should match the outputs of function_imaginary
 
-    #   action = data["action"]
-    #   prior = img_step(state, action)
+      outputs = jax.lax.cond(imaginary, (state, data), function_imaginary, (state, data), function_real)
+      return outputs
 
-    #   # likely that jax requereis to have the same kind of outputs as if imaginary = 0
-    #   return prior, None, None, None
-    
-    # # one draft of how to do it:
-    # def function_imaginary(state, data):
-    #   img_step = self.wm.RSSM.img_step
-    #   return img_step(state, data["action"]), None, None
-    # def function_real(state, data):
-    #   metrics = {}
-    #   data = self.preprocess(data)
-    #   state, wm_outs, mets = self.wm.train(data, state)
-    #   metrics.update(mets)
-    #   context = {**data, **wm_outs['post']}
-    #   start = tree_map(lambda x: x.reshape([-1] + list(x.shape[2:])), context)
-    #   _, mets = self.task_behavior.train(self.wm.imagine, start, context)
-    #   metrics.update(mets)
-    #   outs = {}
-
-    # outputs = jax.lax.cond(imaginary, lambda _: function_imaginary(), lambda _: function_real(), None)
-    # return outputs
+    state, wm_outs, metrics, outs = model_fn(self, state, data, imaginary)
 
 
 
@@ -336,12 +325,6 @@ class WorldModel(nj.Module):
 
     # Split the state into previous latent state and previous action.
     prev_latent, prev_action = state
-
-    print("prev_action", prev_action.shape)
-    print("data['action']", data['action'].shape)
-
-    print("prev_action[:, None]", prev_action[:, None].shape)
-    print("data['action'][:, :-1]", data['action'][:, :-1].shape)
 
     # Concatenate previous actions with the current actions (excluding the last action in the data).
     prev_actions = jnp.concatenate([prev_action[:, None], data['action'][:, :-1]], 1)
