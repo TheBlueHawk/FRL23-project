@@ -37,23 +37,52 @@ class Driver:
   def on_episode(self, callback):
     self._on_episodes.append(callback)  # Add a callback function to the list of episode callbacks
 
-  def __call__(self, policy, steps=0, episodes=0):
+  def __call__(self, policy, steps=0, episodes=0, total_step=0):
     step, episode = 0, 0
     # Continue the interaction loop until reaching the desired number of steps or episodes
     while step < steps or episode < episodes:
-      step, episode = self._step(policy, step, episode)
+      step, episode = self._step(policy, step, episode, total_step)
 
   # performs a single step in the interaction loop. It receives observations from the environment, 
   # determines actions using the policy, updates internal state, and stores transition data
-  def _step(self, policy, step, episode):
+  def _step(self, policy, step, episode, total_step):
     # Assertion: Check that the lengths of all actions are consistent with the number of environments
     assert all(len(x) == len(self._env) for x in self._acts.values())
-    
+
     # Action Processing: Filter actions and perform an action step in the environment
     # Prepare actions for the environment based on the current policy
     acts = {k: v for k, v in self._acts.items() if not k.startswith('log_')}
     obs = self._env.step(acts)  # Interact with the environment using the prepared actions
     obs = {k: convert(v) for k, v in obs.items()}  # Convert observation data to appropriate data types
+
+    # RANDOM OBSERVATION USED FOR EXPERIMENT ONLY
+
+    ACTIVATED = False
+    THRESHOLD_STEPS = 100000
+    NOISY = min((total_step - THRESHOLD_STEPS) * 0.001, 1)
+
+    if ACTIVATED:
+        def generate_random_dictionary():
+            random_dict = {
+                'state_vec': np.array([[np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]]),
+                'reward': np.array([np.random.choice([0, 1])], dtype=np.float32),
+                'is_first': np.array([np.random.choice([True, False])]),
+                'is_last': np.array([np.random.choice([True, False])]),
+                'is_terminal': np.array([np.random.choice([True, False])])
+            }
+            return random_dict
+
+        random_obs = generate_random_dictionary()
+        random_obs["reward"] = obs["reward"]
+
+        if total_step > THRESHOLD_STEPS:
+            if NOISY == 1:
+                obs = random_obs
+            elif NOISY == 0:
+                pass
+            else:
+                obs["state_vec"] = (1 - NOISY) * obs["state_vec"] + NOISY * random_obs["state_vec"]
+
     assert all(len(x) == len(self._env) for x in obs.values()), obs
     
     # Policy Execution: Get actions from the policy function based on the observations and state
