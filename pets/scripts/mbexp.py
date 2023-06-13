@@ -5,10 +5,15 @@ from __future__ import absolute_import
 import os
 import argparse
 import pprint
+import sys
+
+# Get the current directory
+current_directory = os.getcwd()
+
+# Add the current directory to the system path
+sys.path.append(current_directory)
 
 from dotmap import DotMap
-
-
 
 from dmbrl.misc.MBExp import MBExperiment
 from dmbrl.controllers.MPC import MPC
