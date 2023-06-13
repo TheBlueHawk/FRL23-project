@@ -130,3 +130,7 @@ dmypy.json
 
 # Log directory
 logdir/
+
+# Exception for PETS
+!pets/dmbrl/env/
+pets/log/
