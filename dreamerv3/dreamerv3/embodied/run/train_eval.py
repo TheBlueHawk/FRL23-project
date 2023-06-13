@@ -84,22 +84,24 @@ def train_eval(
       if 'priority' in outs:
         train_replay.prioritize(outs['key'], outs['priority'])
       updates.increment()
+
     if should_sync(updates): # some weird stuff to make several devices work together, for parallelization
       agent.sync()
  
-    # if should_log(step):
-    only_JSON = True
-    if should_log(step):
-      only_JSON = False #or (step > 49700 and step < 51000): # every x seconds (config log_every) => add data to logger and save / print the metrics (here that we print long summary)
-    logger.add(metrics.result())
-    logger.add(agent.report(batch[0]), prefix='report')
-    # with timer.scope('dataset_eval'):
-    #   eval_batch = next(dataset_eval)
-    # logger.add(agent.report(eval_batch), prefix='eval')
-    logger.add(train_replay.stats, prefix='replay') # replay stats:  'size' ('inserts', 'samples', 'insert_wait_avg', 
-    # logger.add(eval_replay.stats, prefix='eval_replay')           # 'insert_wait_frac', 'sample_wait_avg', 'sample_wait_frac')
-    logger.add(timer.stats(), prefix='timer')
-    logger.write(fps=True, only_JSON=only_JSON)
+    if int(step) % 1000 == 0 or (step > 9000 and step < 12000):
+    # Your code here
+      only_JSON = True
+      if should_log(step):
+        only_JSON = False #or (step > 49700 and step < 51000): # every x seconds (config log_every) => add data to logger and save / print the metrics (here that we print long summary)
+      logger.add(metrics.result())
+      logger.add(agent.report(batch[0]), prefix='report')
+      with timer.scope('dataset_eval'):
+        eval_batch = next(dataset_eval)
+      logger.add(agent.report(eval_batch), prefix='eval')
+      logger.add(train_replay.stats, prefix='replay') # replay stats:  'size' ('inserts', 'samples', 'insert_wait_avg', 
+      logger.add(eval_replay.stats, prefix='eval_replay')           # 'insert_wait_frac', 'sample_wait_avg', 'sample_wait_frac')
+      logger.add(timer.stats(), prefix='timer')
+      logger.write(fps=True, only_JSON=only_JSON)
   
   driver_train.on_step(train_step)
 
