@@ -13,14 +13,14 @@ def main():
     config = config.update({  # Further customizing configuration
         'logdir': f'logdir/{int(time.time())}',  # Directory for logs. Created fresh each time
         'run.train_ratio': 64,
-        'run.log_every': 30,  # Logging frequency (in seconds)
+        'run.log_every': 60,  # Logging frequency (in seconds)
         'batch_size': 16,  # Batch size for training
         'jax.prealloc': False,
         'encoder.mlp_keys': '.*',
         'decoder.mlp_keys': '.*',
         'encoder.cnn_keys': '$^',
         'decoder.cnn_keys': '$^',
-        'jax.platform': 'cpu',
+        # 'jax.platform': 'cpu',
     })
     config = embodied.Flags(config).parse()  # Parsing final configuration
 
