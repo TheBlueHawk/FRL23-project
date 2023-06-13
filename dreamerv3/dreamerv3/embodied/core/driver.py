@@ -57,14 +57,15 @@ class Driver:
 
     # RANDOM OBSERVATION USED FOR EXPERIMENT ONLY
 
-    ACTIVATED = False
-    THRESHOLD_STEPS = 100000
-    NOISY = min((total_step - THRESHOLD_STEPS) * 0.001, 1)
+    ACTIVATED = True
+    THRESHOLD_STEPS = 10000
+    NOISY = 1 #min((total_step - THRESHOLD_STEPS) * 0.001, 1)
 
     if ACTIVATED:
         def generate_random_dictionary():
             random_dict = {
-                'state_vec': np.array([[np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]]),
+                # 'state_vec': np.array([[np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]]), # CARTPOLE
+                'state_vec': np.array([[np.random.rand()*2 -1, np.random.rand()*2-1, np.random.rand()*16-8]]), # PENDULUM
                 'reward': np.array([np.random.choice([0, 1])], dtype=np.float32),
                 'is_first': np.array([np.random.choice([True, False])]),
                 'is_last': np.array([np.random.choice([True, False])]),
@@ -74,6 +75,8 @@ class Driver:
 
         random_obs = generate_random_dictionary()
         random_obs["reward"] = obs["reward"]
+        random_obs["is_first"] = obs["is_first"]
+        random_obs["is_last"] = obs["is_last"]
 
         if total_step > THRESHOLD_STEPS:
             if NOISY == 1:
