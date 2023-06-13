@@ -64,7 +64,7 @@ def train_eval(
   random_agent = embodied.RandomAgent(train_env.act_space)
   print('Prefill train dataset.')
   while len(train_replay) < max(args.batch_steps, args.train_fill):
-    driver_train(random_agent.policy, steps=100)
+    driver_train(random_agent.policy, steps=100, total_step=step)
   print('Prefill eval dataset.')
   while len(eval_replay) < max(args.batch_steps, args.eval_fill): # for us, no loop as eval_replay = train_replay so already full
     driver_eval(random_agent.policy, steps=100)
@@ -86,16 +86,21 @@ def train_eval(
       updates.increment()
     if should_sync(updates): # some weird stuff to make several devices work together, for parallelization
       agent.sync()
-    if should_log(step): # every x seconds (config log_every) => add data to logger and save / print the metrics (here that we print long summary)
-      logger.add(metrics.result())
-      logger.add(agent.report(batch[0]), prefix='report')
-      with timer.scope('dataset_eval'):
-        eval_batch = next(dataset_eval)
-      logger.add(agent.report(eval_batch), prefix='eval')
-      logger.add(train_replay.stats, prefix='replay') # replay stats:  'size' ('inserts', 'samples', 'insert_wait_avg', 
-      logger.add(eval_replay.stats, prefix='eval_replay')           # 'insert_wait_frac', 'sample_wait_avg', 'sample_wait_frac')
-      logger.add(timer.stats(), prefix='timer')
-      logger.write(fps=True)
+ 
+    # if should_log(step):
+    only_JSON = True
+    if should_log(step):
+      only_JSON = False #or (step > 49700 and step < 51000): # every x seconds (config log_every) => add data to logger and save / print the metrics (here that we print long summary)
+    logger.add(metrics.result())
+    logger.add(agent.report(batch[0]), prefix='report')
+    # with timer.scope('dataset_eval'):
+    #   eval_batch = next(dataset_eval)
+    # logger.add(agent.report(eval_batch), prefix='eval')
+    logger.add(train_replay.stats, prefix='replay') # replay stats:  'size' ('inserts', 'samples', 'insert_wait_avg', 
+    # logger.add(eval_replay.stats, prefix='eval_replay')           # 'insert_wait_frac', 'sample_wait_avg', 'sample_wait_frac')
+    logger.add(timer.stats(), prefix='timer')
+    logger.write(fps=True, only_JSON=only_JSON)
+  
   driver_train.on_step(train_step)
 
   checkpoint = embodied.Checkpoint(logdir / 'checkpoint.ckpt')
@@ -117,7 +122,7 @@ def train_eval(
       print('Starting evaluation at step', int(step))
       driver_eval.reset()
       driver_eval(policy_eval, episodes=max(len(eval_env), args.eval_eps)) # for us: one full episode in eval
-    driver_train(policy_train, steps=100)
+    driver_train(policy_train, steps=100, total_step=step)
     if should_save(step):
       checkpoint.save()
   logger.write()

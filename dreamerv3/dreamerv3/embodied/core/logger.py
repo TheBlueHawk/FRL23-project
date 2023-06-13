@@ -42,15 +42,19 @@ class Logger:
   def video(self, name, value):
     self.add({name: value})
 
-  def write(self, fps=False):
+  def write(self, fps=False, only_JSON = False):
     if fps:
       value = self._compute_fps()
       if value is not None:
         self.scalar('fps', value)
     if not self._metrics:
       return
-    for output in self.outputs:
+    if only_JSON:
+      output = self.outputs[1]
       output(tuple(self._metrics))
+    else:
+      for output in self.outputs:
+        output(tuple(self._metrics))
     self._metrics.clear()
 
   def _compute_fps(self):
