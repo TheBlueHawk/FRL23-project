@@ -137,7 +137,7 @@ class MPC(Controller):
         if self.model.is_tf_model:
             self.sy_cur_obs = tf.Variable(np.zeros(self.dO), dtype=tf.float32)
             self.ac_seq = tf.placeholder(shape=[1, self.plan_hor*self.dU], dtype=tf.float32)
-            self.pred_cost, self.pred_traj = self._compile_cost(self.ac_seq, get_pred_trajs=True)
+            self.pred_cost, self.pred_traj, _ = self._compile_cost(self.ac_seq, get_pred_trajs=True)
             self.optimizer.setup(self._compile_cost, True)
             self.model.sess.run(tf.variables_initializer([self.sy_cur_obs]))
         else:
@@ -271,6 +271,9 @@ class MPC(Controller):
             [1, 1, self.npart, 1]
         ), [self.plan_hor, -1, self.dU])
         init_obs = tf.tile(self.sy_cur_obs[None], [nopt * self.npart, 1])
+        
+        # Initialize pred_trajs_var as a TensorArray
+        pred_trajs_var = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
 
         def continue_prediction(t, *args):
             return tf.less(t, self.plan_hor)
@@ -278,31 +281,36 @@ class MPC(Controller):
         if get_pred_trajs:
             pred_trajs = init_obs[None]
 
-            def iteration(t, total_cost, cur_obs, pred_trajs):
+            def iteration(t, total_cost, cur_obs, pred_trajs, pred_trajs_var):
                 cur_acs = ac_seqs[t]
-                next_obs = self._predict_next_obs(cur_obs, cur_acs)
+                next_obs, next_var = self._predict_next_obs(cur_obs, cur_acs)
                 delta_cost = tf.reshape(
                     self.obs_cost_fn(next_obs) + self.ac_cost_fn(cur_acs), [-1, self.npart]
                 )
                 next_obs = self.obs_postproc2(next_obs)
                 pred_trajs = tf.concat([pred_trajs, next_obs[None]], axis=0)
-                return t + 1, total_cost + delta_cost, next_obs, pred_trajs
+                pred_trajs_var = pred_trajs_var.write(t, next_var)  # Write next_var to TensorArray
+                return t + 1, total_cost + delta_cost, next_obs, pred_trajs, pred_trajs_var
 
-            _, costs, _, pred_trajs = tf.while_loop(
-                cond=continue_prediction, body=iteration, loop_vars=[t, init_costs, init_obs, pred_trajs],
+            _, costs, _, pred_trajs, pred_trajs_var = tf.while_loop(
+                cond=continue_prediction, body=iteration, loop_vars=[t, init_costs, init_obs, pred_trajs, pred_trajs_var],
                 shape_invariants=[
-                    t.get_shape(), init_costs.get_shape(), init_obs.get_shape(), tf.TensorShape([None, None, self.dO])
+                    t.get_shape(), init_costs.get_shape(), init_obs.get_shape(), tf.TensorShape([None, None, self.dO]), tf.TensorShape([])
                 ]
             )
 
+            # Convert pred_trajs_var from TensorArray to tensor
+            pred_trajs_var = pred_trajs_var.stack()
+
+            
             # Replace nan costs with very high cost
             costs = tf.reduce_mean(tf.where(tf.is_nan(costs), 1e6 * tf.ones_like(costs), costs), axis=1)
             pred_trajs = tf.reshape(pred_trajs, [self.plan_hor + 1, -1, self.npart, self.dO])
-            return costs, pred_trajs
+            return costs, pred_trajs, pred_trajs_var
         else:
             def iteration(t, total_cost, cur_obs):
                 cur_acs = ac_seqs[t]
-                next_obs = self._predict_next_obs(cur_obs, cur_acs)
+                next_obs, var = self._predict_next_obs(cur_obs, cur_acs)
                 delta_cost = tf.reshape(
                     self.obs_cost_fn(next_obs) + self.ac_cost_fn(cur_acs), [-1, self.npart]
                 )
@@ -363,7 +371,7 @@ class MPC(Controller):
                 predictions = tf.gather_nd(predictions, idxs)
                 predictions = tf.reshape(predictions, [-1, predictions.get_shape()[-1]])
 
-            return self.obs_postproc(obs, predictions)
+            return self.obs_postproc(obs, predictions), var
         else:
             raise NotImplementedError()
 
