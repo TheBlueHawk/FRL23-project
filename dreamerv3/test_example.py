@@ -35,9 +35,8 @@ def main():
         # embodied.logger.MLFlowOutput(logdir.name),  # MLFlow output (commented out)
     ])
 
-    from embodied.envs import from_gym   
-    env = gym.make('Pendulum-v0', g=9.81)
-
+    from embodied.envs import from_gym    
+    env = gym.make('HalfCheetah-v2')  # Creating Gym environment
     env = from_gym.FromGym(env, obs_key='state_vec')  # Wrapping gym environment to use state vector as observation
     env = dreamerv3.wrap_env(env, config)  # Wrapping the environment with DreamerV3 specifics
     env = embodied.BatchEnv([env], parallel=False)  # Creating a batched version of the environment
