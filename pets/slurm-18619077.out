@@ -1,0 +1,45 @@
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+2023-06-15 15:12:58.589959: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2023-06-15 15:12:58.813603: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x55bce2290e70 executing computations on platform CUDA. Devices:
+2023-06-15 15:12:58.813677: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): NVIDIA GeForce GTX 1080 Ti, Compute Capability 6.1
+2023-06-15 15:12:58.816620: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2199995000 Hz
+2023-06-15 15:12:58.816800: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x55bce2400db0 executing computations on platform Host. Devices:
+2023-06-15 15:12:58.816847: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
+2023-06-15 15:12:58.821618: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1433] Found device 0 with properties: 
+name: NVIDIA GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:0d:00.0
+totalMemory: 10.91GiB freeMemory: 10.77GiB
+2023-06-15 15:12:58.821777: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1512] Adding visible gpu devices: 0
+2023-06-15 15:12:58.823302: I tensorflow/core/common_runtime/gpu/gpu_device.cc:984] Device interconnect StreamExecutor with strength 1 edge matrix:
+2023-06-15 15:12:58.823343: I tensorflow/core/common_runtime/gpu/gpu_device.cc:990]      0 
+2023-06-15 15:12:58.823363: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1003] 0:   N 
+2023-06-15 15:12:58.823485: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10480 MB memory) -> physical GPU (device: 0, name: NVIDIA GeForce GTX 1080 Ti, pci bus id: 0000:0d:00.0, compute capability: 6.1)
+/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/gym/envs/registration.py:17: PkgResourcesDeprecationWarning: Parameters to load are deprecated.  Call .resolve and .require separately.
+  result = entry_point.load(False)
+WARNING:tensorflow:From /cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/framework/op_def_library.py:263: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+WARNING:tensorflow:From /cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/ops/math_ops.py:3066: to_int32 (from tensorflow.python.ops.math_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.cast instead.
+Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s]2023-06-15 15:13:01.291432: I tensorflow/stream_executor/dso_loader.cc:152] successfully opened CUDA library libcublas.so.10.0 locally
+Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s, Training loss(es)=[5.236795  5.174548  5.1875706 5.3148217 5.7044506]]Network training:  20%|██        | 1/5 [00:00<00:01,  2.00epoch(s)/s, Training loss(es)=[5.236795  5.174548  5.1875706 5.3148217 5.7044506]]Network training:  20%|██        | 1/5 [00:00<00:02,  1.94epoch(s)/s, Training loss(es)=[5.227188  5.1653137 5.177705  5.301745  5.69424  ]]Network training:  20%|██        | 1/5 [00:00<00:02,  1.88epoch(s)/s, Training loss(es)=[5.2119603 5.1503363 5.1623955 5.278887  5.6785398]]Network training:  20%|██        | 1/5 [00:00<00:02,  1.82epoch(s)/s, Training loss(es)=[5.187515  5.1211267 5.1400204 5.246415  5.655835 ]]Network training:  20%|██        | 1/5 [00:00<00:02,  1.76epoch(s)/s, Training loss(es)=[5.16329   5.0787168 5.1191225 5.2048573 5.6166553]]Network training: 100%|██████████| 5/5 [00:00<00:00,  8.82epoch(s)/s, Training loss(es)=[5.16329   5.0787168 5.1191225 5.2048573 5.6166553]]
+Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s]Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s, Training loss(es)=[2.621897  2.7170482 2.8487382 2.5612419 2.4918303]]Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s, Training loss(es)=[2.5864916 2.733416  2.8348572 2.5097454 2.4786906]]Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s, Training loss(es)=[2.5742598 2.7413328 2.8077695 2.4792562 2.4408395]]Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s, Training loss(es)=[2.568138  2.7200902 2.7931385 2.418418  2.4330287]]Network training:  80%|████████  | 4/5 [00:00<00:00, 32.59epoch(s)/s, Training loss(es)=[2.568138  2.7200902 2.7931385 2.418418  2.4330287]]Network training:  80%|████████  | 4/5 [00:00<00:00, 26.33epoch(s)/s, Training loss(es)=[2.5420609 2.7129805 2.7753372 2.4003625 2.418704 ]]Network training: 100%|██████████| 5/5 [00:00<00:00, 32.86epoch(s)/s, Training loss(es)=[2.5420609 2.7129805 2.7753372 2.4003625 2.418704 ]]
