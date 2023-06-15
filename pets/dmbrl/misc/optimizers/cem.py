@@ -63,7 +63,6 @@ class CEMOptimizer(Optimizer):
                                "session into the constructor")
 
         self.tf_compatible = tf_compatible
-        self.cost_function = cost_function
 
         if not tf_compatible:
             self.cost_function = cost_function
@@ -76,11 +75,6 @@ class CEMOptimizer(Optimizer):
                 constrained_var = tf.minimum(tf.minimum(tf.square(lb_dist / 2), tf.square(ub_dist / 2)), var)
                 samples = tf.truncated_normal([self.popsize, self.sol_dim], mean, tf.sqrt(constrained_var))
 
-                # # print samples and its dimensions
-                # print("Colin")
-                # print(samples)
-                # print(samples.shape)
-                
                 costs = cost_function(samples)
                 values, indices = tf.nn.top_k(-costs, k=self.num_elites, sorted=True)
 
@@ -120,35 +114,6 @@ class CEMOptimizer(Optimizer):
                 [self.mean, self.var],
                 feed_dict={self.init_mean: init_mean, self.init_var: init_var}
             )
-            tensor = tf.convert_to_tensor(sol)
-            reshaped_tensor = tf.reshape(tensor, (1, 25))
-            cost, pred_traj, pred_traj_var = self.tf_sess.run(self.cost_function(reshaped_tensor, True))
-            # print("Cost: ", cost)
-            # print("Pred Traj: ", pred_traj.shape)
-            # print("Pred Traj Var: ", pred_traj_var.shape)
-
-            # 1. Take average over third index
-            average_tensor = tf.reduce_mean(pred_traj_var, axis=2)  # This will have size (25, 5, 4)
-
-            # 2. Take variance over second index
-            variance_tensor = tf.math.reduce_variance(average_tensor, axis=1)  # This will have size (25, 4)
-
-            # 3. Take average over second index
-            average_tensor = tf.reduce_mean(variance_tensor, axis=1)  # This will have size (25,)
-
-            print("Average Tensor: ", self.tf_sess.run(average_tensor))
-
-            # Turn tf tensor into numpy array
-            average_tensor = self.tf_sess.run(average_tensor)
-
-            # Take linear regerssion of this tensor
-            x = np.arange(0, 25)
-            slope, intercept, r_value, p_value, std_err = stats.linregress(x, average_tensor)
-            print("Slope: ", slope)
-
-            # Print max value of average tensor
-            print("Max Value: ", np.max(average_tensor))
-
         else:
             mean, var, t = init_mean, init_var, 0
             X = stats.truncnorm(-2, 2, loc=np.zeros_like(mean), scale=np.ones_like(mean))
@@ -169,8 +134,4 @@ class CEMOptimizer(Optimizer):
 
                 t += 1
             sol, solvar = mean, var
-        # # print mean and its dimensions
-        # print("mean: ", sol)
-        # print("mean shape: ", sol.shape)
-        # print()
         return sol
