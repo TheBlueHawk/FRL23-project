@@ -1,0 +1,105 @@
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+2023-06-15 16:02:06.643801: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2023-06-15 16:02:06.863404: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x5629d5e6eef0 executing computations on platform CUDA. Devices:
+2023-06-15 16:02:06.863520: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): NVIDIA GeForce GTX 1080 Ti, Compute Capability 6.1
+2023-06-15 16:02:06.866729: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2199995000 Hz
+2023-06-15 16:02:06.866945: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x5629d5fdee60 executing computations on platform Host. Devices:
+2023-06-15 16:02:06.867001: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
+2023-06-15 16:02:06.867334: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1433] Found device 0 with properties: 
+name: NVIDIA GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:07:00.0
+totalMemory: 10.91GiB freeMemory: 10.77GiB
+2023-06-15 16:02:06.867387: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1512] Adding visible gpu devices: 0
+2023-06-15 16:02:06.868858: I tensorflow/core/common_runtime/gpu/gpu_device.cc:984] Device interconnect StreamExecutor with strength 1 edge matrix:
+2023-06-15 16:02:06.868897: I tensorflow/core/common_runtime/gpu/gpu_device.cc:990]      0 
+2023-06-15 16:02:06.868920: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1003] 0:   N 
+2023-06-15 16:02:06.869047: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10480 MB memory) -> physical GPU (device: 0, name: NVIDIA GeForce GTX 1080 Ti, pci bus id: 0000:07:00.0, compute capability: 6.1)
+/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/gym/envs/registration.py:17: PkgResourcesDeprecationWarning: Parameters to load are deprecated.  Call .resolve and .require separately.
+  result = entry_point.load(False)
+WARNING:tensorflow:From /cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/framework/op_def_library.py:263: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+WARNING:tensorflow:From /cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/ops/math_ops.py:3066: to_int32 (from tensorflow.python.ops.math_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.cast instead.
+Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s]2023-06-15 16:02:08.675688: I tensorflow/stream_executor/dso_loader.cc:152] successfully opened CUDA library libcublas.so.10.0 locally
+Network training:   0%|          | 0/5 [00:00<?, ?epoch(s)/s, Training loss(es)=[0.26388276 0.30957505 0.30206972 0.29412496 0.27681324]]Network training:  20%|██        | 1/5 [00:00<00:01,  2.55epoch(s)/s, Training loss(es)=[0.26388276 0.30957505 0.30206972 0.29412496 0.27681324]]Network training:  20%|██        | 1/5 [00:00<00:01,  2.47epoch(s)/s, Training loss(es)=[0.25219977 0.2952806  0.29130045 0.28130975 0.26495597]]Network training:  20%|██        | 1/5 [00:00<00:01,  2.39epoch(s)/s, Training loss(es)=[0.23199615 0.2721908  0.27247795 0.25967583 0.24417058]]Network training:  20%|██        | 1/5 [00:00<00:01,  2.32epoch(s)/s, Training loss(es)=[0.20449427 0.24895316 0.2443048  0.2283649  0.21734565]]Network training:  20%|██        | 1/5 [00:00<00:01,  2.26epoch(s)/s, Training loss(es)=[0.1827505  0.2466764  0.21651088 0.20050032 0.2006526 ]]Network training: 100%|██████████| 5/5 [00:00<00:00, 11.27epoch(s)/s, Training loss(es)=[0.1827505  0.2466764  0.21651088 0.20050032 0.2006526 ]]
+{'ctrl_cfg': {'env': <dmbrl.env.pusher.PusherEnv object at 0x2b6d7cc310b8>,
+              'opt_cfg': {'ac_cost_fn': <function PusherConfigModule.ac_cost_fn at 0x2b6d7cc04158>,
+                          'cfg': {'alpha': 0.1,
+                                  'max_iters': 5,
+                                  'num_elites': 50,
+                                  'popsize': 500},
+                          'mode': 'CEM',
+                          'obs_cost_fn': <bound method PusherConfigModule.obs_cost_fn of <pusher.PusherConfigModule object at 0x2b6d7cbf0e10>>,
+                          'plan_hor': 25},
+              'prop_cfg': {'mode': 'TSinf',
+                           'model_init_cfg': {'model_class': <class 'dmbrl.modeling.models.BNN.BNN'>,
+                                              'model_constructor': <bound method PusherConfigModule.nn_constructor of <pusher.PusherConfigModule object at 0x2b6d7cbf0e10>>,
+                                              'num_nets': 5},
+                           'model_train_cfg': {'epochs': 5},
+                           'npart': 20,
+                           'obs_postproc': <function PusherConfigModule.obs_postproc at 0x2b6d7cbf9f28>,
+                           'targ_proc': <function PusherConfigModule.targ_proc at 0x2b6d7cc04048>}},
+ 'exp_cfg': {'exp_cfg': {'nrollouts_per_iter': 1, 'ntrain_iters': 100},
+             'log_cfg': {'logdir': 'log'},
+             'sim_cfg': {'env': <dmbrl.env.pusher.PusherEnv object at 0x2b6d7cc310b8>,
+                         'task_hor': 150}}}
+Created an ensemble of 5 neural networks with variance predictions.
+Created an MPC controller, prop mode TSinf, 20 particles. 
+Trajectory prediction logging is disabled.
+Average action selection time:  2.3349126180013022e-05
+Rollout length:  150
+####################################################################
+Starting training iteration 1.
+Traceback (most recent call last):
+  File "/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 1659, in _create_c_op
+    c_op = c_api.TF_FinishOperation(op_desc)
+tensorflow.python.framework.errors_impl.InvalidArgumentError: Cannot reshape a tensor with 175 elements to shape [1,25] (25 elements) for 'Reshape_3' (op: 'Reshape') with input shapes: [175], [2] and with input tensors computed as partial shapes: input[1] = [1,25].
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "scripts/mbexp.py", line 51, in <module>
+    main(args.env, "MPC", args.ctrl_arg, args.override, args.logdir)
+  File "scripts/mbexp.py", line 36, in main
+    exp.run_experiment()
+  File "/cluster/scratch/keblin/FRL23-project/pets/dmbrl/misc/MBExp.py", line 121, in run_experiment
+    self.task_hor, self.policy
+  File "/cluster/scratch/keblin/FRL23-project/pets/dmbrl/misc/Agent.py", line 60, in sample
+    A.append(policy.act(O[t], t))
+  File "/cluster/scratch/keblin/FRL23-project/pets/dmbrl/controllers/MPC.py", line 214, in act
+    soln = self.optimizer.obtain_solution(self.prev_sol, self.init_var)
+  File "/cluster/scratch/keblin/FRL23-project/pets/dmbrl/misc/optimizers/cem.py", line 124, in obtain_solution
+    reshaped_tensor = tf.reshape(tensor, (1, 25))
+  File "/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/ops/gen_array_ops.py", line 7179, in reshape
+    "Reshape", tensor=tensor, shape=shape, name=name)
+  File "/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/framework/op_def_library.py", line 788, in _apply_op_helper
+    op_def=op_def)
+  File "/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/util/deprecation.py", line 507, in new_func
+    return func(*args, **kwargs)
+  File "/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 3300, in create_op
+    op_def=op_def)
+  File "/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 1823, in __init__
+    control_input_ops)
+  File "/cluster/home/keblin/miniconda3/envs/pets/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 1662, in _create_c_op
+    raise ValueError(str(e))
+ValueError: Cannot reshape a tensor with 175 elements to shape [1,25] (25 elements) for 'Reshape_3' (op: 'Reshape') with input shapes: [175], [2] and with input tensors computed as partial shapes: input[1] = [1,25].
