@@ -68,20 +68,15 @@ class CEMOptimizer(Optimizer):
         if not tf_compatible:
             self.cost_function = cost_function
         else:
-            def continue_optimization(t, mean, var, best_val, best_sol):
+            def continue_optimization(t, mean, var, best_val, best_sol, last_pred_trajs_var):
                 return tf.logical_and(tf.less(t, self.max_iters), tf.reduce_max(var) > self.epsilon)
 
-            def iteration(t, mean, var, best_val, best_sol):
+            def iteration(t, mean, var, best_val, best_sol, last_pred_trajs_var):
                 lb_dist, ub_dist = mean - self.lb, self.ub - mean
                 constrained_var = tf.minimum(tf.minimum(tf.square(lb_dist / 2), tf.square(ub_dist / 2)), var)
                 samples = tf.truncated_normal([self.popsize, self.sol_dim], mean, tf.sqrt(constrained_var))
 
-                # # print samples and its dimensions
-                # print("Colin")
-                # print(samples)
-                # print(samples.shape)
-                
-                costs = cost_function(samples)
+                costs, pred_trajs, pred_trajs_var = cost_function(samples, True)
                 values, indices = tf.nn.top_k(-costs, k=self.num_elites, sorted=True)
 
                 best_val, best_sol = tf.cond(
@@ -97,12 +92,19 @@ class CEMOptimizer(Optimizer):
                 mean = self.alpha * mean + (1 - self.alpha) * new_mean
                 var = self.alpha * var + (1 - self.alpha) * new_var
 
-                return t + 1, mean, var, best_val, best_sol
+                return t + 1, mean, var, best_val, best_sol, pred_trajs_var
 
             with self.tf_sess.graph.as_default():
-                self.num_opt_iters, self.mean, self.var, self.best_val, self.best_sol = tf.while_loop(
+                dummy_initial_value = tf.zeros((1, 1, 1, 1))  # Adjust this shape according to your knowledge
+                self.num_opt_iters, self.mean, self.var, self.best_val, self.best_sol, self.last_pred_trajs_var = tf.while_loop(
                     cond=continue_optimization, body=iteration,
-                    loop_vars=[0, self.init_mean, self.init_var, float("inf"), self.init_mean]
+                    loop_vars=[0, self.init_mean, self.init_var, float("inf"), self.init_mean, dummy_initial_value],
+                    shape_invariants=[tf.TensorShape([]),
+                                    self.init_mean.get_shape(),
+                                    self.init_var.get_shape(),
+                                    tf.TensorShape([]),
+                                    self.init_mean.get_shape(),
+                                    tf.TensorShape([None]*4)]
                 )
 
     def reset(self):
@@ -116,39 +118,11 @@ class CEMOptimizer(Optimizer):
             init_var (np.ndarray): The variance of the initial candidate distribution.
         """
         if self.tf_compatible:
-            sol, solvar = self.tf_sess.run(
-                [self.mean, self.var],
+            sol, solvar, last_pred_trajs_var = self.tf_sess.run(
+                [self.mean, self.var, self.last_pred_trajs_var],
                 feed_dict={self.init_mean: init_mean, self.init_var: init_var}
             )
-            tensor = tf.convert_to_tensor(sol)
-            reshaped_tensor = tf.reshape(tensor, (1, 25))
-            cost, pred_traj, pred_traj_var = self.tf_sess.run(self.cost_function(reshaped_tensor, True))
-            # print("Cost: ", cost)
-            # print("Pred Traj: ", pred_traj.shape)
-            # print("Pred Traj Var: ", pred_traj_var.shape)
-
-            # 1. Take average over third index
-            average_tensor = tf.reduce_mean(pred_traj_var, axis=2)  # This will have size (25, 5, 4)
-
-            # 2. Take variance over second index
-            variance_tensor = tf.math.reduce_variance(average_tensor, axis=1)  # This will have size (25, 4)
-
-            # 3. Take average over second index
-            average_tensor = tf.reduce_mean(variance_tensor, axis=1)  # This will have size (25,)
-
-            print("Average Tensor: ", self.tf_sess.run(average_tensor))
-
-            # Turn tf tensor into numpy array
-            average_tensor = self.tf_sess.run(average_tensor)
-
-            # Take linear regerssion of this tensor
-            x = np.arange(0, 25)
-            slope, intercept, r_value, p_value, std_err = stats.linregress(x, average_tensor)
-            print("Slope: ", slope)
-
-            # Print max value of average tensor
-            print("Max Value: ", np.max(average_tensor))
-
+            # print("Last Pred Trajs Var: ", last_pred_trajs_var.shape)
         else:
             mean, var, t = init_mean, init_var, 0
             X = stats.truncnorm(-2, 2, loc=np.zeros_like(mean), scale=np.ones_like(mean))
@@ -169,8 +143,5 @@ class CEMOptimizer(Optimizer):
 
                 t += 1
             sol, solvar = mean, var
-        # # print mean and its dimensions
-        # print("mean: ", sol)
-        # print("mean shape: ", sol.shape)
-        # print()
+            
         return sol
