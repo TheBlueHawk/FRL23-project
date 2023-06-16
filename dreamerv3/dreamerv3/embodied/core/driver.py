@@ -58,14 +58,19 @@ class Driver:
     # RANDOM OBSERVATION USED FOR EXPERIMENT ONLY
 
     ACTIVATED = True
-    THRESHOLD_STEPS = 10000
-    NOISY = 1 #min((total_step - THRESHOLD_STEPS) * 0.001, 1)
+    THRESHOLD_STEPS = 150000
+    NOISY = 0.1
+    # NOISY = min((total_step - THRESHOLD_STEPS) * 0.001, 1)
 
     if ACTIVATED:
         def generate_random_dictionary():
             random_dict = {
                 # 'state_vec': np.array([[np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]]), # CARTPOLE
-                'state_vec': np.array([[np.random.rand()*2 -1, np.random.rand()*2-1, np.random.rand()*16-8]]), # PENDULUM
+                # 'state_vec': np.array([[np.random.rand()*2 -1, np.random.rand()*2-1, np.random.rand()*16-8]]), # PENDULUM
+                # 'state_vec': np.array([[np.random.uniform(-1, 1), np.random.uniform(-1, 1), np.random.uniform(-1, 1),
+                #                 np.random.uniform(-1, 1), np.random.uniform(-4*np.pi, 4*np.pi),
+                #                 np.random.uniform(-9*np.pi, 9*np.pi)]]), # ACROBOT
+                'state_vec': np.array([[np.random.rand()*1.8 -1.2, np.random.rand()*0.14-0.07]]), # MOUNTAIN CAR CONT
                 'reward': np.array([np.random.choice([0, 1])], dtype=np.float32),
                 'is_first': np.array([np.random.choice([True, False])]),
                 'is_last': np.array([np.random.choice([True, False])]),
