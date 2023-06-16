@@ -280,6 +280,9 @@ class MPC(Controller):
 
             def iteration(t, total_cost, cur_obs, pred_trajs):
                 cur_acs = ac_seqs[t]
+                # print shapes of cur_obs and cur_acs
+                #print("cur_obs shape: ", cur_obs.shape)
+                #print("cur_acs shape: ", cur_acs.shape)
                 next_obs = self._predict_next_obs(cur_obs, cur_acs)
                 delta_cost = tf.reshape(
                     self.obs_cost_fn(next_obs) + self.ac_cost_fn(cur_acs), [-1, self.npart]

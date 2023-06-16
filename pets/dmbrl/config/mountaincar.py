@@ -18,7 +18,7 @@ class MountainCarConfigModule:
     NTRAIN_ITERS = 50
     NROLLOUTS_PER_ITER = 1
     PLAN_HOR = 25
-    MODEL_IN, MODEL_OUT = 2, 1
+    MODEL_IN, MODEL_OUT = 3, 2
     GP_NINDUCING_POINTS = 200
 
     def __init__(self):
@@ -41,6 +41,7 @@ class MountainCarConfigModule:
 
     @staticmethod
     def obs_preproc(obs):
+        #print("obs_preproc: ", obs.shape)
         if isinstance(obs, np.ndarray):
             return obs
         else:
@@ -48,6 +49,8 @@ class MountainCarConfigModule:
 
     @staticmethod
     def obs_postproc(obs, pred):
+        #temp = obs + pred
+        #print("obs_postproc: ", temp.shape)
         return obs + pred
 
     @staticmethod

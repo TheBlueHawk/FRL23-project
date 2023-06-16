@@ -46,6 +46,8 @@ class ReacherConfigModule:
 
     @staticmethod
     def obs_postproc(obs, pred):
+        #temp = obs + pred
+        #print("obs_postproc: ", temp.shape)
         return obs + pred
 
     @staticmethod

@@ -403,6 +403,8 @@ class BNN:
             in the ensemble.
         """
         dim_output = self.layers[-1].get_output_dim()
+
+        #print("BNN inputs", inputs.shape)
         cur_out = self.scaler.transform(inputs)
         for layer in self.layers:
             cur_out = layer.compute_output_tensor(cur_out)
