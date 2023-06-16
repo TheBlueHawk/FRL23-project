@@ -88,11 +88,10 @@ def train_eval(
     if should_sync(updates): # some weird stuff to make several devices work together, for parallelization
       agent.sync()
  
-    if int(step) % 1000 == 0 or (step > 9000 and step < 12000):
-    # Your code here
+    if int(step) % 1000 == 0 or (step > 147000 and step < 155000):
       only_JSON = True
       if should_log(step):
-        only_JSON = False #or (step > 49700 and step < 51000): # every x seconds (config log_every) => add data to logger and save / print the metrics (here that we print long summary)
+        only_JSON = False # every x seconds (config log_every) => add data to logger and save / print the metrics (here that we print long summary)
       logger.add(metrics.result())
       logger.add(agent.report(batch[0]), prefix='report')
       with timer.scope('dataset_eval'):
