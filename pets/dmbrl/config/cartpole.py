@@ -42,12 +42,18 @@ class CartpoleConfigModule:
     @staticmethod
     def obs_preproc(obs):
         if isinstance(obs, np.ndarray):
+            #temp = np.concatenate([np.sin(obs[:, 1:2]), np.cos(obs[:, 1:2]), obs[:, :1], obs[:, 2:]], axis=1)
+            #print("obs_preproc: ", temp.shape)
             return np.concatenate([np.sin(obs[:, 1:2]), np.cos(obs[:, 1:2]), obs[:, :1], obs[:, 2:]], axis=1)
         else:
+            #temp = tf.concat([tf.sin(obs[:, 1:2]), tf.cos(obs[:, 1:2]), obs[:, :1], obs[:, 2:]], axis=1)
+            #print("obs_preproc: ", temp.shape)
             return tf.concat([tf.sin(obs[:, 1:2]), tf.cos(obs[:, 1:2]), obs[:, :1], obs[:, 2:]], axis=1)
 
     @staticmethod
     def obs_postproc(obs, pred):
+        #temp = obs + pred
+        #print("obs_postproc: ", temp.shape)
         return obs + pred
 
     @staticmethod
