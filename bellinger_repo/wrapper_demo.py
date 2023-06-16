@@ -1,23 +1,24 @@
+import gym
 from stable_baselines3 import PPO
 from wrapper import make_env
 
-obs_cost = 0
-obs_flag = 0
-vanilla = 1
+obs_cost = 0.1
+obs_flag = 1
+vanilla = 0
 
 env = make_env("CartPole-v1", obs_cost, obs_flag, vanilla)
-print(type(env))
 
 model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=25000)
+model.learn(total_timesteps=10000)
 
 observation = env.reset()
+for _ in range(100):
+    # env.render()
+    action, _ = model.predict(observation)
+    observation, reward, done, info = env.step(action)
+    print(done)
+    if done:
+        observation = env.reset()
+        print("..........")
 
-for _ in range(10000):
-  env.render()
-  action, _states = model.predict(observation)
-  observation, reward, terminated, info = env.step(action)
- 
-  if terminated:
-    observation = env.reset()
 env.close()

@@ -1,6 +1,6 @@
 import gym
 import numpy as np
-from gymnasium.spaces import Box
+from gym.spaces import Box
 
   
 def make_env(env_name, obs_cost, obs_flag, vanilla):
@@ -28,7 +28,8 @@ class VanillaWrapper(gym.Wrapper):
         return False
     
     def step(self, action):
-        state, reward, done, info = self.env.step(action)
+        state, reward, terminated, truncated, info = self.env.step(action)
+        done = terminated or truncated
         info['cost'] = 0.0
         info['reward'] = reward
 
@@ -131,7 +132,7 @@ class MeasureWrapper(gym.Wrapper):
             else:
                 raise ValueError(f"Unknown state invalid: {self.unknown_state}")
 
-        if self.obs_flag:
+        if self.obs_flag:    
             state = np.concatenate(([measure], state))
         
 
