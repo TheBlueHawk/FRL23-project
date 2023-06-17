@@ -53,24 +53,53 @@ class Agent:
         O, A, reward_sum, done = [self.env.reset()], [], 0, False
 
         policy.reset()
-        for t in range(horizon):
+        t = 0
+        while t < horizon and not done:
             if video_record:
                 recorder.capture_frame()
             start = time.time()
-            A.append(policy.act(O[t], t))
+            acs, pred_trajs, pred_trajs_var, full_acs = policy.act(O[t], t)
             times.append(time.time() - start)
+            
+            if policy.has_been_trained:
+                i=0
+                if pred_trajs_var is not False: # (26, 1, 20, 4)
+                    pred_trajs = np.squeeze(pred_trajs, axis=1) # (26, 20, 4)
+                    pred_trajs = np.var(pred_trajs, axis=1) # (26, 4)
+                    pred_trajs = np.mean(pred_trajs, axis=1) # (26,)
 
-            if self.noise_stddev is None:
-                obs, reward, done, info = self.env.step(A[t])
+                while i < 1 and not done:
+                    full_acs = full_acs.reshape(-1, 1)
+                    A.append(full_acs[i])
+                
+                    if self.noise_stddev is None:
+                        obs, reward, done, info = self.env.step(full_acs[i])
+                    else:
+                        action = full_acs[i] + np.random.normal(loc=0, scale=self.noise_stddev, size=[self.dU])
+                        action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
+                        obs, reward, done, info = self.env.step(action)
+                    O.append(obs)
+                    reward_sum += reward
+                    rewards.append(reward)
+            
+                    i+=1
+                    t+=1
             else:
-                action = A[t] + np.random.normal(loc=0, scale=self.noise_stddev, size=[self.dU])
-                action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
-                obs, reward, done, info = self.env.step(action)
-            O.append(obs)
-            reward_sum += reward
-            rewards.append(reward)
-            if done:
-                break
+                if pred_trajs_var is not False:
+                    pred_trajs_var = pred_trajs_var.mean(axis=(1,2,3))
+                A.append(acs)
+                times.append(time.time() - start)
+            
+                if self.noise_stddev is None and not done:
+                    obs, reward, done, info = self.env.step(A[t])
+                else:
+                    action = A[t] + np.random.normal(loc=0, scale=self.noise_stddev, size=[self.dU])
+                    action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
+                    obs, reward, done, info = self.env.step(action)
+                O.append(obs)
+                reward_sum += reward
+                rewards.append(reward)
+                t+=1
 
         if video_record:
             recorder.capture_frame()
