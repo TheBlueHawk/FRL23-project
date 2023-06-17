@@ -1,17 +1,21 @@
 import gym
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DDPG
 from wrapper import make_env
 from stable_baselines3.common.callbacks import BaseCallback
 import pandas as pd
+import torch
 
 obs_cost = 0.4
 obs_flag = 1
 vanilla = 0
-total_steps = 15000
+total_steps = 200000
 log_dir = "logdir"
 
+# Set the device to GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using {device} device")
 
-env = make_env("MountainCarContinuous-v0", obs_cost, obs_flag, vanilla)
+env = make_env("Pendulum-v1", obs_cost, obs_flag, vanilla)
 
 class PrintEpisodeRewardCallback(BaseCallback):
     """
@@ -34,12 +38,12 @@ class PrintEpisodeRewardCallback(BaseCallback):
                 self.episode_data['Reward'].append(reward)
                 self.episode_data['Length'].append(lengths[episode])
                 self.episode_data['TotalSteps'].append(total_steps)
-                if self.verbose > 0: 
+                if self.verbose > 0:
                     print(f"Episode: {episode_num}, Reward: {reward}, Length: {lengths[episode]}, Total Steps: {total_steps}")
             self.model.ep_info_buffer.clear()  # Clear the episode information buffer after printing
         return True
 
-model = PPO("MlpPolicy", env, verbose=0)
+model = PPO("MlpPolicy", env, device=device, verbose=0)  # Set the device parameter
 
 callback = PrintEpisodeRewardCallback(verbose=1)  # Create the callback instance
 model.learn(total_timesteps=total_steps, callback=callback)
@@ -50,7 +54,6 @@ env.close()
 episode_df = pd.DataFrame(callback.episode_data)
 
 import time
-import os
 import os
 from datetime import datetime
 os.makedirs(log_dir, exist_ok=True)
