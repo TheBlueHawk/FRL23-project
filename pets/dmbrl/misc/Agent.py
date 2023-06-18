@@ -34,7 +34,7 @@ class Agent:
         if self.noise_stddev is not None:
             self.dU = self.env.action_space.shape[0]
 
-    def sample(self, horizon, policy, record_fname=None):
+    def sample(self, horizon, policy, record_fname=None, imagine=False):
         """Samples a rollout from the agent.
 
         Arguments: 
@@ -61,15 +61,24 @@ class Agent:
             acs, pred_trajs, pred_trajs_var, full_acs = policy.act(O[t], t)
             times.append(time.time() - start)
             
-            if policy.has_been_trained:
+            if imagine:
                 i=0
-                if pred_trajs_var is not False: # (26, 1, 20, 4)
-                    pred_trajs = np.squeeze(pred_trajs, axis=1) # (26, 20, 4)
-                    pred_trajs = np.var(pred_trajs, axis=1) # (26, 4)
-                    pred_trajs = np.mean(pred_trajs, axis=1) # (26,)
+                pred_trajs = np.squeeze(pred_trajs, axis=1) # (26, 20, 4)
+                variance = np.var(pred_trajs, axis=1) # (26, 4)
+                avg_variance = np.mean(variance, axis=1) # (26,)
+                mean = np.mean(pred_trajs, axis=1) # (26, 4)
+                full_acs = full_acs.reshape(-1, 1)
 
-                while i < 1 and not done:
-                    full_acs = full_acs.reshape(-1, 1)
+                mask = avg_variance > 0.001
+                index = np.argmax(mask)
+                # print(avg_variance)
+                # print("index ", index)
+                # index = 3
+
+                if index == 0:
+                    index = avg_variance.shape[0] - 1
+
+                while i < index and not done:
                     A.append(full_acs[i])
                 
                     if self.noise_stddev is None:
@@ -79,16 +88,14 @@ class Agent:
                         action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
                         obs, reward, done, info = self.env.step(action)
                     O.append(obs)
+                    if i == 0:
+                        reward = reward - 0.4
                     reward_sum += reward
                     rewards.append(reward)
-            
                     i+=1
                     t+=1
             else:
-                if pred_trajs_var is not False:
-                    pred_trajs_var = pred_trajs_var.mean(axis=(1,2,3))
                 A.append(acs)
-                times.append(time.time() - start)
             
                 if self.noise_stddev is None and not done:
                     obs, reward, done, info = self.env.step(A[t])
@@ -97,8 +104,10 @@ class Agent:
                     action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
                     obs, reward, done, info = self.env.step(action)
                 O.append(obs)
+                reward = reward - 0.4
                 reward_sum += reward
                 rewards.append(reward)
+                
                 t+=1
 
         if video_record:
