@@ -96,18 +96,19 @@ class MBExperiment:
                 [sample["rewards"] for sample in samples]
             )
 
-        n_imaginary = 40
+        self.ntrain_iters = 10 
+        n_imaginary = 20
         imagine = False
 
         # Training loop
-        for i in range(self.ntrain_iters):
+        for i in range(self.ntrain_iters + n_imaginary):
             print("####################################################################")
             print("Starting training iteration %d." % (i + 1))
 
             iter_dir = os.path.join(self.logdir, "train_iter%d" % (i + 1))
             os.makedirs(iter_dir, exist_ok=True)
 
-            if i >= self.ntrain_iters - n_imaginary:
+            if i >= self.ntrain_iters:
                 imagine = True
 
             samples = []
