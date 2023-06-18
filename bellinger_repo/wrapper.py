@@ -1,6 +1,9 @@
 import gym
 import numpy as np
 from gym.spaces import Box
+import os
+import importlib.machinery
+import importlib.util
 
   
 def make_env(env_name, obs_cost, obs_flag, vanilla):
@@ -17,6 +20,7 @@ def make_env(env_name, obs_cost, obs_flag, vanilla):
         A gym environment.
     """
     env = gym.make(env_name)
+    env._max_episode_steps = 200
     if vanilla:
         return VanillaWrapper(env)
     else:

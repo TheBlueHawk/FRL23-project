@@ -4,6 +4,7 @@ from wrapper import make_env
 from stable_baselines3.common.callbacks import BaseCallback
 import pandas as pd
 import torch
+import env
 
 obs_cost = 0.4
 obs_flag = 1
@@ -15,7 +16,8 @@ log_dir = "logdir"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using {device} device")
 
-env = make_env("Pendulum-v1", obs_cost, obs_flag, vanilla)
+#env = make_env("InvertedPendulum-v2", obs_cost, obs_flag, vanilla)
+env = make_env("MBRLCartpole-v0", obs_cost, obs_flag, vanilla)
 
 class PrintEpisodeRewardCallback(BaseCallback):
     """
@@ -28,6 +30,7 @@ class PrintEpisodeRewardCallback(BaseCallback):
         self.episode_data = {'Episode': [], 'Reward': [], 'Length': [], 'TotalSteps': []}
 
     def _on_step(self) -> bool:
+        # print(f"Step: {self.num_timesteps}")
         if len(self.model.ep_info_buffer) > 0:
             rewards = [ep_info['r'] for ep_info in self.model.ep_info_buffer]
             lengths = [ep_info['l'] for ep_info in self.model.ep_info_buffer]
@@ -43,9 +46,9 @@ class PrintEpisodeRewardCallback(BaseCallback):
             self.model.ep_info_buffer.clear()  # Clear the episode information buffer after printing
         return True
 
-model = PPO("MlpPolicy", env, device=device, verbose=0)  # Set the device parameter
+model = PPO("MlpPolicy", env, device=device, verbose=1)  # Set the device parameter
 
-callback = PrintEpisodeRewardCallback(verbose=1)  # Create the callback instance
+callback = PrintEpisodeRewardCallback(verbose=0)  # Create the callback instance
 model.learn(total_timesteps=total_steps, callback=callback)
 
 env.close()
