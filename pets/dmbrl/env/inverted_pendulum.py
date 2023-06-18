@@ -38,8 +38,8 @@ class InvertedPendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def _get_ee_pos(x):
         x0, theta = x[0], x[1]
         return np.array([
-            x0 - CartpoleEnv.PENDULUM_LENGTH * np.sin(theta),
-            -CartpoleEnv.PENDULUM_LENGTH * np.cos(theta)
+            x0 - InvertedPendulumEnv.PENDULUM_LENGTH * np.sin(theta),
+            -InvertedPendulumEnv.PENDULUM_LENGTH * np.cos(theta)
         ])
 
     def viewer_setup(self):
