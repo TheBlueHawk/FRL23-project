@@ -76,9 +76,10 @@ class MeasureWrapper(gym.Wrapper):
                 
         if self.continuous_action_space:
             la = np.concatenate(([0], env.unwrapped.action_space.low))
-            ha = np.concatenate(([1], env.unwrapped.action_space.high))        
+            ha = np.concatenate(([1], env.unwrapped.action_space.high))    
             self.action_space = Box(low=la, high=ha, 
-                dtype=env.unwrapped.action_space.dtype)
+                #dtype=env.unwrapped.action_space.dtype)
+            )
         else:
             self.action_space = gym.spaces.Discrete(2*env.action_space.n)
 
