@@ -23,3 +23,8 @@ register(
     id='MBRLHalfCheetah-v0',
     entry_point='dmbrl.env.half_cheetah:HalfCheetahEnv'
 )
+
+register(
+    id='MBRLInvertedPendulum-v0',
+    entry_point='dmbrl.env.inverted_pendulum:InvertedPendulumEnv'
+)

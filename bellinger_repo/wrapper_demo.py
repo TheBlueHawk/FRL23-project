@@ -1,5 +1,5 @@
 import gym
-from stable_baselines3 import PPO, DDPG
+from stable_baselines3 import PPO, DDPG, SAC, TD3
 from wrapper import make_env
 from stable_baselines3.common.callbacks import BaseCallback
 import pandas as pd
@@ -46,7 +46,7 @@ class PrintEpisodeRewardCallback(BaseCallback):
             self.model.ep_info_buffer.clear()  # Clear the episode information buffer after printing
         return True
 
-model = PPO("MlpPolicy", env, device=device, verbose=1)  # Set the device parameter
+model = TD3("MlpPolicy", env, device=device, verbose=1)  # Set the device parameter
 
 callback = PrintEpisodeRewardCallback(verbose=0)  # Create the callback instance
 model.learn(total_timesteps=total_steps, callback=callback)
