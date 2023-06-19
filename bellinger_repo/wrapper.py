@@ -34,6 +34,7 @@ class VanillaWrapper(gym.Wrapper):
     def step(self, action):
         state, reward, terminated, truncated, info = self.env.step(action)
         done = terminated or truncated
+        #state, reward, done, info = self.env.step(action)
         info['cost'] = 0.0
         info['reward'] = reward
 

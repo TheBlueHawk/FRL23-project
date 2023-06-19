@@ -26,5 +26,6 @@ register(
 
 register(
     id='MBRLInvertedPendulum-v0',
+    max_episode_steps=200,
     entry_point='dmbrl.env.inverted_pendulum:InvertedPendulumEnv'
 )
