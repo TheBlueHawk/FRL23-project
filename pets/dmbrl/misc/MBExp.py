@@ -96,8 +96,8 @@ class MBExperiment:
                 [sample["rewards"] for sample in samples]
             )
 
-        self.ntrain_iters = 10 
-        n_imaginary = 20
+        self.ntrain_iters = 10          # Set the number of training episodes
+        n_imaginary = 20                # Set the number of deployment episodes
         imagine = False
 
         # Training loop

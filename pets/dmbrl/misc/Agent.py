@@ -76,11 +76,10 @@ class Agent:
                 mean = np.mean(pred_trajs, axis=1) # (26, 4)
                 full_acs = full_acs.reshape(-1, 1)
 
-                mask = avg_variance > 0.0005 # 0.01 0.1 -> nul
+                mask = avg_variance > 0.0005        # Heuristics Approach: Choose variance threshold
                 index = np.argmax(mask)
-                # print(avg_variance)
-                # print("index ", index)
-                # index = 3 # 3, 5 -> nul
+
+                # index = 2                         # Naive Approach: choose number of imaginary steps
 
                 if index == 0:
                     index = avg_variance.shape[0] - 1
