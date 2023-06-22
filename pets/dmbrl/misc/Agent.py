@@ -60,20 +60,27 @@ class Agent:
             start = time.time()
             acs, pred_trajs, pred_trajs_var, full_acs = policy.act(O[t], t)
             times.append(time.time() - start)
+
+            # if pred_trajs is not False:
+            #     print("pred_trajs ", pred_trajs.shape)
+            #     woah = np.squeeze(pred_trajs, axis=1) # (26, 20, 4)
+            #     jeez = np.var(woah, axis=1) # (26, 4)
+            #     print("variance ", jeez)
             
             if imagine:
                 i=0
                 pred_trajs = np.squeeze(pred_trajs, axis=1) # (26, 20, 4)
                 variance = np.var(pred_trajs, axis=1) # (26, 4)
-                avg_variance = np.mean(variance, axis=1) # (26,)
+                weights = np.array([0.4487, 0.6450, 0.1020, 0.0319])
+                avg_variance = np.average(variance, axis=1, weights=weights) # (26,)
                 mean = np.mean(pred_trajs, axis=1) # (26, 4)
                 full_acs = full_acs.reshape(-1, 1)
 
-                mask = avg_variance > 0.001
+                mask = avg_variance > 0.0005 # 0.01 0.1 -> nul
                 index = np.argmax(mask)
                 # print(avg_variance)
                 # print("index ", index)
-                # index = 3
+                # index = 3 # 3, 5 -> nul
 
                 if index == 0:
                     index = avg_variance.shape[0] - 1
