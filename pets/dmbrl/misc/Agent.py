@@ -34,7 +34,7 @@ class Agent:
         if self.noise_stddev is not None:
             self.dU = self.env.action_space.shape[0]
 
-    def sample(self, horizon, policy, record_fname=None):
+    def sample(self, horizon, policy, record_fname=None, imagine=False):
         """Samples a rollout from the agent.
 
         Arguments: 
@@ -53,24 +53,68 @@ class Agent:
         O, A, reward_sum, done = [self.env.reset()], [], 0, False
 
         policy.reset()
-        for t in range(horizon):
+        t = 0
+        while t < horizon and not done:
             if video_record:
                 recorder.capture_frame()
             start = time.time()
-            A.append(policy.act(O[t], t))
+            acs, pred_trajs, pred_trajs_var, full_acs = policy.act(O[t], t)
             times.append(time.time() - start)
 
-            if self.noise_stddev is None:
-                obs, reward, done, info = self.env.step(A[t])
+            # if pred_trajs is not False:
+            #     print("pred_trajs ", pred_trajs.shape)
+            #     woah = np.squeeze(pred_trajs, axis=1) # (26, 20, 4)
+            #     jeez = np.var(woah, axis=1) # (26, 4)
+            #     print("variance ", jeez)
+            
+            if imagine:
+                i=0
+                pred_trajs = np.squeeze(pred_trajs, axis=1) # (26, 20, 4)
+                variance = np.var(pred_trajs, axis=1) # (26, 4)
+                weights = np.array([0.4487, 0.6450, 0.1020, 0.0319])
+                avg_variance = np.average(variance, axis=1, weights=weights) # (26,)
+                mean = np.mean(pred_trajs, axis=1) # (26, 4)
+                full_acs = full_acs.reshape(-1, 1)
+
+                mask = avg_variance > 0.0005        # Heuristics Approach: Choose variance threshold
+                index = np.argmax(mask)
+
+                # index = 2                         # Naive Approach: choose number of imaginary steps
+
+                if index == 0:
+                    index = avg_variance.shape[0] - 1
+
+                while i < index and not done:
+                    A.append(full_acs[i])
+                
+                    if self.noise_stddev is None:
+                        obs, reward, done, info = self.env.step(full_acs[i])
+                    else:
+                        action = full_acs[i] + np.random.normal(loc=0, scale=self.noise_stddev, size=[self.dU])
+                        action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
+                        obs, reward, done, info = self.env.step(action)
+                    O.append(obs)
+                    if i == 0:
+                        reward = reward - 0.4
+                    reward_sum += reward
+                    rewards.append(reward)
+                    i+=1
+                    t+=1
             else:
-                action = A[t] + np.random.normal(loc=0, scale=self.noise_stddev, size=[self.dU])
-                action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
-                obs, reward, done, info = self.env.step(action)
-            O.append(obs)
-            reward_sum += reward
-            rewards.append(reward)
-            if done:
-                break
+                A.append(acs)
+            
+                if self.noise_stddev is None and not done:
+                    obs, reward, done, info = self.env.step(A[t])
+                else:
+                    action = A[t] + np.random.normal(loc=0, scale=self.noise_stddev, size=[self.dU])
+                    action = np.minimum(np.maximum(action, self.env.action_space.low), self.env.action_space.high)
+                    obs, reward, done, info = self.env.step(action)
+                O.append(obs)
+                reward = reward - 0.4
+                reward_sum += reward
+                rewards.append(reward)
+                
+                t+=1
 
         if video_record:
             recorder.capture_frame()

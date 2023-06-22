@@ -128,6 +128,7 @@ class MPC(Controller):
         # Controller state variables
         self.has_been_trained = params.prop_cfg.get("model_pretrained", False)
         self.ac_buf = np.array([]).reshape(0, self.dU)
+        self.traj_buf, self.var_buf, self.full_ac_buf = [], [], []
         self.prev_sol = np.tile((self.ac_lb + self.ac_ub) / 2, [self.plan_hor])
         self.init_var = np.tile(np.square(self.ac_ub - self.ac_lb) / 16, [self.plan_hor])
         self.train_in = np.array([]).reshape(0, self.dU + self.obs_preproc(np.zeros([1, self.dO])).shape[-1])
@@ -203,17 +204,21 @@ class MPC(Controller):
         Returns: An action (and possibly the predicted cost)
         """
         if not self.has_been_trained:
-            return np.random.uniform(self.ac_lb, self.ac_ub, self.ac_lb.shape)
+            return np.random.uniform(self.ac_lb, self.ac_ub, self.ac_lb.shape), False, False, False
         if self.ac_buf.shape[0] > 0:
             action, self.ac_buf = self.ac_buf[0], self.ac_buf[1:]
-            return action
+            return action, self.traj_buf.pop(0), self.var_buf.pop(0), self.full_ac_buf.pop(0)
 
         if self.model.is_tf_model:
             self.sy_cur_obs.load(obs, self.model.sess)
 
-        soln = self.optimizer.obtain_solution(self.prev_sol, self.init_var)
+        soln, pred_trajs, pred_trajs_var = self.optimizer.obtain_solution(self.prev_sol, self.init_var)
         self.prev_sol = np.concatenate([np.copy(soln)[self.per*self.dU:], np.zeros(self.per*self.dU)])
         self.ac_buf = soln[:self.per*self.dU].reshape(-1, self.dU)
+
+        self.traj_buf.append(pred_trajs)
+        self.var_buf.append(pred_trajs_var)
+        self.full_ac_buf.append(soln)
 
         if get_pred_cost and not (self.log_traj_preds or self.log_particles):
             if self.model.is_tf_model:

@@ -96,20 +96,28 @@ class MBExperiment:
                 [sample["rewards"] for sample in samples]
             )
 
+        self.ntrain_iters = 10          # Set the number of training episodes
+        n_imaginary = 20                # Set the number of deployment episodes
+        imagine = False
+
         # Training loop
-        for i in range(self.ntrain_iters):
+        for i in range(self.ntrain_iters + n_imaginary):
             print("####################################################################")
             print("Starting training iteration %d." % (i + 1))
 
             iter_dir = os.path.join(self.logdir, "train_iter%d" % (i + 1))
             os.makedirs(iter_dir, exist_ok=True)
 
+            if i >= self.ntrain_iters:
+                imagine = True
+
             samples = []
             for j in range(self.nrecord):
                 samples.append(
                     self.agent.sample(
                         self.task_hor, self.policy,
-                        os.path.join(iter_dir, "rollout%d.mp4" % j)
+                        os.path.join(iter_dir, "rollout%d.mp4" % j),
+                        imagine=imagine
                     )
                 )
             if self.nrecord > 0:
@@ -118,7 +126,7 @@ class MBExperiment:
             for j in range(max(self.neval, self.nrollouts_per_iter) - self.nrecord):
                 samples.append(
                     self.agent.sample(
-                        self.task_hor, self.policy
+                        self.task_hor, self.policy, imagine=imagine
                     )
                 )
             print("Rewards obtained:", [sample["reward_sum"] for sample in samples[:self.neval]])
@@ -142,9 +150,12 @@ class MBExperiment:
             if len(os.listdir(iter_dir)) == 0:
                 os.rmdir(iter_dir)
 
-            if i < self.ntrain_iters - 1:
+            if not imagine:
                 self.policy.train(
                     [sample["obs"] for sample in samples],
                     [sample["ac"] for sample in samples],
                     [sample["rewards"] for sample in samples]
                 )
+                print("Training")
+            else:
+                print("Not training")
