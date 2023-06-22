@@ -99,3 +99,23 @@ pip install -r requirements.txt
 Everything is the same as above, except for the following:
 - `conda create --name dreamerv3-torch python=3.9`
 - `module load gcc/8.2.0 python_gpu/3.9.9 r/4.0.2 git-lfs/2.3.0 eth_proxy npm/6.14.9 ffmpeg/5.0 cudnn/8.8.1.3 cuda/11.7.0`
+- 
+
+## PETS
+### Create environment
+``` bash
+conda create -n pets python=3.6
+conda activate pets
+pip install -r requirements.txt
+```
+
+### Run example
+``` bash
+# srun --gpus=1 --ntasks=4 --mem-per-cpu=4G --pty bash
+# conda activate pets
+# module load gcc/4.8.5 cuda/10.0.130 cudnn/7.4 eth_proxy
+# python scripts/mbexp.py -env cartpole
+```
+
+
+
