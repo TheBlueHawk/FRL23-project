@@ -117,5 +117,17 @@ pip install -r requirements.txt
 # python scripts/mbexp.py -env cartpole
 ```
 
-
+### Adjust approach
+* To run Naive approach:
+  * Activate branch PETS_experiments
+  * Set the number of training episodes in `dmbrl/misc/MBExp.py`, at line 99
+  * Set the number of deployment episodes in `dmbrl/misc/MBExp.py`, at line 100
+  * Set the number of imaginary steps between two observations in `dmbrl/misc/Agent.py`, at line 82
+ 
+* To run Heuristics approach:
+  * Activate branch PETS_experiments
+  * Set the number of training episodes in `dmbrl/misc/MBExp.py`, at line 99
+  * Set the number of deployment episodes in `dmbrl/misc/MBExp.py`, at line 100
+  * Deactivate the Naive approach by commenting the line 82 in `dmbrl/misc/Agent.py`
+  * Set the variance threshold in `dmbrl/misc/Agent.py`, at line 79
 
